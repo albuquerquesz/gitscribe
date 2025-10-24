@@ -15,7 +15,7 @@ import (
 * Copyright (c) 2025 Victor Albuquerque Arruda. All Rights Reserved.
 * */
 
-func UpdateCli(version string) *cobra.Command {
+func UpdateCLI(version string) *cobra.Command {
 	updateCmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update gitscribe to the latest version",

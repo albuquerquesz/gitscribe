@@ -20,7 +20,7 @@ var version = "1.0.1"
 * */
 
 func main() {
-	updateCmd := UpdateCli(version)
+	updateCmd := UpdateCLI(version)
 
 	rootCmd := &cobra.Command{
 		Use:   "gs",

@@ -1,12 +1,13 @@
 package internal
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
+	"errors"
 	"fmt"
-	"io"
-	"net/http"
-	"strings"
+	"os"
+
+	"github.com/joho/godotenv"
+	openai "github.com/sashabaranov/go-openai"
 )
 
 type ResponseMessage struct {
@@ -29,47 +30,39 @@ type APIResponse struct {
 }
 
 func SendPrompt(ctx string) (string, error) {
-	data, err := json.Marshal(map[string]any{
-		"messages": []map[string]string{
-			{
-				"role":    "system",
-				"content": "Você é um gerador de commits, que gera commits em inglês seguindo o padrão Conventional Commit",
-			},
-			{
-				"role":    "user",
-				"content": ctx,
+	godotenv.Load()
+
+	apiKey := os.Getenv("GROQ_API_KEY")
+	if apiKey == "" {
+		return "", errors.New("Missing GROQ_API_KEY env...")
+	}
+
+	config := openai.DefaultConfig(apiKey)
+	config.BaseURL = "https://api.groq.com/openai/v1"
+
+	client := openai.NewClientWithConfig(config)
+
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: "llama-3.3-70b-versatile",
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    "system",
+					Content: "You are a commit message generator, and you have to generate commit messages in the Conventional Commits pattern",
+				},
+				{
+					Role:    "user",
+					Content: ctx,
+				},
 			},
 		},
-	})
+	)
 	if err != nil {
-		return "", fmt.Errorf("error to create body: %v", err)
+		fmt.Println("Erro:", err)
+		return "", fmt.Errorf("Erro: %v", err)
 	}
 
-	reply, err := http.Post("https://ai.hackclub.com/chat/completions", "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		return "", fmt.Errorf("error to request to hackclub: %v", err)
-	}
-	defer reply.Body.Close()
-
-	body, err := io.ReadAll(reply.Body)
-	if err != nil {
-		return "", fmt.Errorf("error to read data: %v", err)
-	}
-
-	if reply.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("a API retornou um status não-OK: %s", reply.Status)
-	}
-
-	var apiResponse APIResponse
-
-	if err := json.Unmarshal(body, &apiResponse); err != nil {
-		return "", fmt.Errorf("error to parse response body: %v", err)
-	}
-
-	// WARN: meio perigoso mas tá pegando
-	msg := apiResponse.Choices[0].Message.Content
-	lines := strings.Split(msg, "\n")
-	commit := lines[len(lines)-1]
-
-	return commit, nil
+	msg := resp.Choices[0].Message.Content
+	return msg, nil
 }
