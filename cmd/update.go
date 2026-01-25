@@ -24,9 +24,9 @@ func init() {
 }
 
 func update() error {
-	currentVersion, err := semver.Parse(v)
+	currentVersion, err := semver.ParseTolerant(v)
 	if err != nil {
-		style.Error(fmt.Sprintf("Error parsing current version (this may happen in dev mode): %v", err))
+		style.Error(fmt.Sprintf("Error parsing current version: %v", err))
 		return nil
 	}
 

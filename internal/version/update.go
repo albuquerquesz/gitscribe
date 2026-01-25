@@ -22,7 +22,7 @@ func CheckForUpdate(currentVersion semver.Version) (*selfupdate.Release, error) 
 }
 
 func ShowUpdate(v string) {
-	currentVersion, err := semver.Parse(v)
+	currentVersion, err := semver.ParseTolerant(v)
 	if err != nil {
 		return
 	}
