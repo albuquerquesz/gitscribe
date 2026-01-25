@@ -1,8 +1,6 @@
 package store
 
 import (
-	"fmt"
-
 	"github.com/zalando/go-keyring"
 )
 
@@ -16,9 +14,6 @@ func Save(apiKey string) error {
 }
 
 func Get() (string, error) {
-	salve := "hahahaha"
-	fmt.Print(salve)
-
 	return keyring.Get(service, user)
 }
 

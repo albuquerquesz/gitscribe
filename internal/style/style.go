@@ -42,6 +42,6 @@ func Spinner(msg string) *pterm.SpinnerPrinter {
 	return addSpinner
 }
 
-func Prompt() {
-	pterm.Print()
+func Prompt(label string) (string, error) {
+	return pterm.DefaultInteractiveTextInput.WithDefaultText(label).Show()
 }
