@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/albqvictor1508/gitscribe/internal"
-	"github.com/albqvictor1508/gitscribe/internal/utils"
+	"github.com/albqvictor1508/gitscribe/internal/style"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -20,27 +20,27 @@ var version = "1.0.2"
 * Copyright (c) 2025 Victor Albuquerque Arruda. All Rights Reserved.
 * */
 
+var msg, branch string
+
 var commitCmd = &cobra.Command{
 		Use:   "cmt [files]",
 		Args:  cobra.MinimumNArgs(0),
 		Short: "AI-powered git add, commit, and push",
 		Run: func(cmd *cobra.Command, args []string) error {
 		return commit(args)
-	}
+	},
 	}
 
 func init() {
+			 cmd.Flags().GetString("message")
+			 cmd.Flags().GetString("branch")
+
 
 }
 
 func commit(files []string) {
-			message, _ := cmd.Flags().GetString("message")
-			branch, _ := cmd.Flags().GetString("branch")
-
-			asciiArt2 := utils.GetASCIIName()
-		pterm.DefaultBasicText.Println(pterm.FgGreen.Sprint(asciiArt2))
-			time.Sleep(time.Second)
-			ShowUpdate(version)
+	style.GetASCIIName()
+		ShowUpdate(version)
 
 			if len(files) == 0 {
 				files = append(files, ".")
