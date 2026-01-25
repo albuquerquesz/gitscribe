@@ -43,5 +43,16 @@ func Spinner(msg string) *pterm.SpinnerPrinter {
 }
 
 func Prompt(label string) (string, error) {
-	return pterm.DefaultInteractiveTextInput.WithDefaultText(label).Show()
+	return pterm.DefaultInteractiveTextInput.WithDefaultText(label).WithMask("*").Show()
+}
+
+func StringMask(str string) string {
+	mask := "****************"
+	length := 8
+
+	if len(str) > length {
+		mask = str[:length] + "****************"
+	}
+
+	return mask
 }

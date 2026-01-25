@@ -47,7 +47,6 @@ func requestAI(apiKey, ctx string) (string, error) {
 		},
 	)
 	if err != nil {
-		fmt.Println("Erro:", err)
 		return "", fmt.Errorf("error: %v", err)
 	}
 

@@ -31,29 +31,33 @@ func init() {
 func config() error {
 	apiKey, err := store.Get()
 	if err == nil && len(apiKey) > 0 && len(key) == 0 {
+		maskedKey := style.StringMask(apiKey)
 
-		fmt.Printf("your API key is %v !!", apiKey)
+		fmt.Printf("A chave API já está configurada: %v\n", maskedKey)
 		return nil
 	}
 
-	if !errors.Is(err, keyring.ErrNotFound) {
-		fmt.Print("salve")
+	if err != nil && !errors.Is(err, keyring.ErrNotFound) {
 		return fmt.Errorf("error to get api key: %w", err)
 	}
 
 	if len(key) == 0 {
-		result, err := style.Prompt("Enter your GROQ API Key...")
+		res, err := style.Prompt("Enter your GROQ API Key...")
 		if err != nil {
 			return err
 		}
-
-		valid := ai.ValidateToken(result)
-		if !valid {
-			return fmt.Errorf("invalid api key: %v", result)
-		}
-
-		store.Save(result)
+		key = res
 	}
 
+	valid := ai.ValidateToken(key)
+	if !valid {
+		return fmt.Errorf("invalid api key")
+	}
+
+	if err := store.Save(key); err != nil {
+		return err
+	}
+
+	fmt.Println("API Key saved successfully!")
 	return nil
 }
