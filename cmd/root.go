@@ -6,7 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version string = "dev"
+// THIS I`LL BE REPLACED WHEN CLI BUILD
+var version string = "v1.0.0"
 
 var rootCmd = &cobra.Command{
 	Use:     "gs",
@@ -14,6 +15,10 @@ var rootCmd = &cobra.Command{
 	Short:   "GitScribe: AI-powered commit messages",
 	Long: `GitScribe (gs) helps you generate meaningful commit messages
 using AI (Groq/Llama) and manages your workflow from staging to pushing.`,
+}
+
+func init() {
+	rootCmd.SetVersionTemplate("GitScribe {{.Version}}\n")
 }
 
 func Exec() {
