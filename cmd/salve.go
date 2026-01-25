@@ -16,10 +16,6 @@ import (
 
 var version = "1.0.2"
 
-/*
-* Copyright (c) 2025 Victor Albuquerque Arruda. All Rights Reserved.
-* */
-
 var msg, branch string
 
 var commitCmd = &cobra.Command{
