@@ -42,9 +42,8 @@ func commit(files []string) {
 				files = append(files, ".")
 			}
 
-			addSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
-			addSpinner.UpdateText("Staging files...")
-			for _, file := range files {
+		style.Spinner("Staging files...")
+		for _, file := range files {
 				addCmd := exec.Command("git", "add", file)
 				addCmd.Stdout = io.Discard
 				addCmd.Stderr = io.Discard
