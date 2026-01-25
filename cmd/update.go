@@ -1,72 +1,94 @@
 package cmd
 
 import (
-	"log"
+	"fmt"
 	"os"
 
+	"github.com/albqvictor1508/gitscribe/internal/style"
 	"github.com/blang/semver"
-	"github.com/creativeprojects/go-selfupdate"
-	"github.com/pterm/pterm"
+	"github.com/rhysd/go-github-selfupdate/selfupdate"
 	"github.com/spf13/cobra"
 )
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Update gitscribe to the latest version",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		return update()
 	},
 }
 
 func init() {
+	rootCmd.AddCommand(updateCmd)
 }
 
 func update() error {
 	currentVersion, err := semver.Parse(version)
 	if err != nil {
-		log.Println("Error parsing current version (this may happen in dev mode):", err)
+		style.Error(fmt.Sprintf("Error parsing current version (this may happen in dev mode): %v", err))
 		return nil
 	}
 
 	latest, err := CheckForUpdate(currentVersion)
 	if err != nil {
-		log.Println("Error checking for update:", err)
+		style.Error(fmt.Sprintf("Error checking for update: %v", err))
 		return nil
 	}
 
 	if latest == nil {
-		pterm.Info.Println("Current version is the latest")
+		style.Info("Current version is the latest")
 		return nil
 	}
 
-	pterm.DefaultBox.WithTitle("Update Available: v" + latest.Version.String()).Println(latest.ReleaseNotes)
-	pterm.Println()
+	style.Box("Update Available: v"+latest.Version.String(), latest.ReleaseNotes)
 
-	confirmed, _ := pterm.DefaultInteractiveConfirm.
-		WithDefaultText("Do you want to update?").
-		Show()
-
-	if !confirmed {
-		log.Println("Update canceled")
+	if !style.InteractiveConfirm("Do you want to update?") {
+		style.Info("Update canceled")
 		return nil
 	}
 
 	exe, err := os.Executable()
 	if err != nil {
-		log.Println("Could not locate executable path")
+		style.Error("Could not locate executable path")
 		return nil
 	}
 
-	pterm.Info.Println("Updating binary...")
+	style.Info("Updating binary...")
 	if err := selfupdate.UpdateTo(latest.AssetURL, exe); err != nil {
 		if os.IsPermission(err) {
-			log.Println("Permission denied. Please run the update command with sudo: sudo gs update")
+			style.Error("Permission denied. Please run the update command with sudo: sudo gs update")
 			return nil
 		}
-		log.Println("Error occurred while updating binary:", err)
+		style.Error(fmt.Sprintf("Error occurred while updating binary: %v", err))
 		return nil
 	}
-	log.Println("Successfully updated to version", latest.Version)
+	style.Success(fmt.Sprintf("Successfully updated to version %s", latest.Version))
 
 	return nil
+}
+
+func CheckForUpdate(currentVersion semver.Version) (*selfupdate.Release, error) {
+	latest, found, err := selfupdate.DetectLatest("albqvictor1508/gitscribe")
+	if err != nil {
+		return nil, fmt.Errorf("error occurred while detecting version: %w", err)
+	}
+
+	if !found || latest.Version.LTE(currentVersion) {
+		return nil, nil
+	}
+
+	return latest, nil
+}
+
+func ShowUpdate(v string) {
+	currentVersion, err := semver.Parse(v)
+	if err != nil {
+		return
+	}
+	latest, err := CheckForUpdate(currentVersion)
+
+	if err != nil || latest == nil {
+		return
+	}
+	style.Box("Update Available", "A new version of gitscribe (v"+latest.Version.String()+") is available! Run 'gs update' to get it.")
 }

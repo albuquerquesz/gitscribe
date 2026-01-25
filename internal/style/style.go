@@ -20,8 +20,8 @@ func GetASCIIName() {
 	ascii := `
            /$$   /$$                                  /$$ /$$
           |__/  | $$
-  /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
- /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$ 
+  /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$
+ /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$$$$$
 | $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$
 | $$  | $$| $$  | $$ /$$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
 |  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$
@@ -55,4 +55,29 @@ func StringMask(str string) string {
 	}
 
 	return mask
+}
+
+func Info(msg string) {
+	pterm.Info.Println(msg)
+}
+
+func Success(msg string) {
+	pterm.Success.Println(msg)
+}
+
+func Error(msg string) {
+	pterm.Error.Println(msg)
+}
+
+func Warning(msg string) {
+	pterm.Warning.Println(msg)
+}
+
+func Box(title, content string) {
+	pterm.DefaultBox.WithTitle(title).Println(content)
+}
+
+func InteractiveConfirm(msg string) bool {
+	confirmed, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
+	return confirmed
 }
