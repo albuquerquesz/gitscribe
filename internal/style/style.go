@@ -41,3 +41,7 @@ func Spinner(msg string) *pterm.SpinnerPrinter {
 
 	return addSpinner
 }
+
+func Prompt() {
+	pterm.Print()
+}
