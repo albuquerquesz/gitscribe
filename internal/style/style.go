@@ -35,7 +35,9 @@ func GetASCIIName() {
 	time.Sleep(time.Second)
 }
 
-func Spinner(msg string) {
+func Spinner(msg string) *pterm.SpinnerPrinter {
 	addSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
-	addSpinner.UpdateText("Staging files...")
+	addSpinner.UpdateText(msg)
+
+	return addSpinner
 }
