@@ -10,14 +10,14 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
-type ResponseMessage struct {
+type responseMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
-type Choice struct {
+type choice struct {
 	Index        int             `json:"index"`
-	Message      ResponseMessage `json:"message"`
+	Message      responseMessage `json:"message"`
 	FinishReason string          `json:"finish_reason"`
 }
 
@@ -26,7 +26,7 @@ type APIResponse struct {
 	Object  string   `json:"object"`
 	Created int64    `json:"created"`
 	Model   string   `json:"model"`
-	Choices []Choice `json:"choices"`
+	Choices []choice `json:"choices"`
 }
 
 func SendPrompt(ctx string) (string, error) {
@@ -34,7 +34,7 @@ func SendPrompt(ctx string) (string, error) {
 
 	apiKey := os.Getenv("GROQ_API_KEY")
 	if apiKey == "" {
-		return "", errors.New("Missing GROQ_API_KEY env...")
+		return "", errors.New("missing GROQ_API_KEY env")
 	}
 
 	config := openai.DefaultConfig(apiKey)
