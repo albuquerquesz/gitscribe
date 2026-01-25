@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/albqvictor1508/gitscribe/internal"
+	"github.com/albqvictor1508/gitscribe/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -19,45 +20,25 @@ var version = "1.0.2"
 * Copyright (c) 2025 Victor Albuquerque Arruda. All Rights Reserved.
 * */
 
-func salve() {
-	updateCmd := UpdateCLI(version)
-
-	rootCmd := &cobra.Command{
-		Use:   "gs",
-		Short: "gitscribe: Your AI-powered git commit assistant",
-
-		Run: func(cmd *cobra.Command, args []string) {
-			versionFlag, _ := cmd.Flags().GetBool("version")
-			if versionFlag {
-				fmt.Printf("gitscribe %s\n", version)
-				return
-			}
-			cmd.Help()
-		},
-	}
-
-	cmtCmd := &cobra.Command{
+var commitCmd = &cobra.Command{
 		Use:   "cmt [files]",
 		Args:  cobra.MinimumNArgs(0),
 		Short: "AI-powered git add, commit, and push",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, args []string) error {
+		return commit()
+	}
+	}
+
+func init() {
+
+}
+
+func commit() {
 			message, _ := cmd.Flags().GetString("message")
 			branch, _ := cmd.Flags().GetString("branch")
 
-			asciiArt2 := `
-           /$$   /$$                                  /$$ /$$
-          |__/  | $$
-  /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
- /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$ 
-| $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$
-| $$  | $$| $$  | $$ /$$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
-|  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$
- \____  $$|__/   \___/ |_______/  \_______/|__/      |__/|_______/  \_______/
- /$$  \ $$
-|  $$$$$$/
- \______/
-			`
-			pterm.DefaultBasicText.Println(pterm.FgGreen.Sprint(asciiArt2))
+			asciiArt2 := utils.GetASCIIName()
+		pterm.DefaultBasicText.Println(pterm.FgGreen.Sprint(asciiArt2))
 			time.Sleep(time.Second)
 			ShowUpdate(version)
 
@@ -145,7 +126,23 @@ func salve() {
 			}
 			pterm.Success.Println("All done!")
 		},
+
+	updateCmd := UpdateCLI(version)
+
+	rootCmd := &cobra.Command{
+		Use:   "gs",
+		Short: "gitscribe: Your AI-powered git commit assistant",
+		Run: func(cmd *cobra.Command, args []string) {
+			versionFlag, _ := cmd.Flags().GetBool("version")
+			if versionFlag {
+				fmt.Printf("gitscribe %s\n", version)
+				return
+			}
+			cmd.Help()
+		},
 	}
+
+	cmtCmd := 
 
 	rootCmd.PersistentFlags().BoolP("version", "v", false, "Print gitscribe version")
 	cmtCmd.Flags().StringP("message", "m", "", "The commit message")
