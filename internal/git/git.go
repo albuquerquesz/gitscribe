@@ -8,7 +8,8 @@ import (
 	"strings"
 )
 
-func Stage(files []string) error {
+// StageFiles stages the specified files.
+func StageFiles(files []string) error {
 	for _, file := range files {
 		cmd := exec.Command("git", "add", file)
 		cmd.Stdout = io.Discard
@@ -20,6 +21,7 @@ func Stage(files []string) error {
 	return nil
 }
 
+// GetStagedDiff returns the diff of staged changes.
 func GetStagedDiff() (string, error) {
 	var diffOutput bytes.Buffer
 	cmd := exec.Command("git", "diff", "--staged")
@@ -32,6 +34,7 @@ func GetStagedDiff() (string, error) {
 	return diffOutput.String(), nil
 }
 
+// Commit performs a git commit with the given message.
 func Commit(message string) error {
 	var output bytes.Buffer
 	cmd := exec.Command("git", "commit", "-m", message)
@@ -43,6 +46,7 @@ func Commit(message string) error {
 	return nil
 }
 
+// Push pushes the changes to the specified branch on origin.
 func Push(branch string) error {
 	var output bytes.Buffer
 	cmd := exec.Command("git", "push", "origin", branch)
@@ -54,6 +58,7 @@ func Push(branch string) error {
 	return nil
 }
 
+// GetCurrentBranch returns the name of the current git branch.
 func GetCurrentBranch() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	output, err := cmd.Output()

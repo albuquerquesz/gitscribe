@@ -2,11 +2,9 @@ package ai
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"os"
 
-	"github.com/joho/godotenv"
+	"github.com/albqvictor1508/gitscribe/internal/store"
 	openai "github.com/sashabaranov/go-openai"
 )
 
@@ -29,14 +27,26 @@ type APIResponse struct {
 	Choices []choice `json:"choices"`
 }
 
-func SendPrompt(ctx string) (string, error) {
-	godotenv.Load()
+func SendPrompt(diff string) (string, error) {
+	ctx := fmt.Sprintf(
+		"Analyze the following git diff and generate a commit message. "+
+			"The message must follow the Conventional Commits standard. "+
+			"Your response should contain *only* the commit message, without any additional text, explanations, or markdown formatting. "+
+			"Focus on the primary purpose of the changes and be concise. "+
+			"Do not include file names, line numbers, or the diff itself in the output. "+
+			"Here is the diff:\n%v",
+		diff,
+	)
 
-	apiKey := os.Getenv("GROQ_API_KEY")
-	if apiKey == "" {
-		return "", errors.New("missing GROQ_API_KEY env")
+	apiKey, err := store.Get()
+	if err != nil {
+		return "", fmt.Errorf("error to get api key: %w", err)
 	}
 
+	return requestAI(apiKey, ctx)
+}
+
+func requestAI(apiKey, ctx string) (string, error) {
 	config := openai.DefaultConfig(apiKey)
 	config.BaseURL = "https://api.groq.com/openai/v1"
 
