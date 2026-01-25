@@ -25,7 +25,7 @@ var commitCmd = &cobra.Command{
 		Args:  cobra.MinimumNArgs(0),
 		Short: "AI-powered git add, commit, and push",
 		Run: func(cmd *cobra.Command, args []string) error {
-		return commit()
+		return commit(args)
 	}
 	}
 
@@ -33,7 +33,7 @@ func init() {
 
 }
 
-func commit() {
+func commit(files []string) {
 			message, _ := cmd.Flags().GetString("message")
 			branch, _ := cmd.Flags().GetString("branch")
 
@@ -42,10 +42,10 @@ func commit() {
 			time.Sleep(time.Second)
 			ShowUpdate(version)
 
-			files := args
 			if len(files) == 0 {
 				files = append(files, ".")
 			}
+
 			addSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
 			addSpinner.UpdateText("Staging files...")
 			for _, file := range files {
