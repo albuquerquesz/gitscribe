@@ -6,6 +6,7 @@ import (
 	"github.com/albqvictor1508/gitscribe/internal/ai"
 	"github.com/albqvictor1508/gitscribe/internal/git"
 	"github.com/albqvictor1508/gitscribe/internal/style"
+	"github.com/albqvictor1508/gitscribe/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +30,7 @@ func init() {
 
 func commit(files []string) error {
 	style.GetASCIIName()
-	ShowUpdate(version)
+	version.ShowUpdate(v)
 
 	if len(files) == 0 {
 		files = append(files, ".")
