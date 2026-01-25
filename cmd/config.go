@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/albqvictor1508/gitscribe/internal/ai"
 	"github.com/albqvictor1508/gitscribe/internal/store"
 	"github.com/albqvictor1508/gitscribe/internal/style"
 	"github.com/spf13/cobra"
@@ -46,8 +47,12 @@ func config() error {
 			return err
 		}
 
-		fmt.Print(result)
-		// store.Save(result)
+		valid := ai.ValidateToken(result)
+		if !valid {
+			return fmt.Errorf("invalid api key: %v", result)
+		}
+
+		store.Save(result)
 	}
 
 	return nil

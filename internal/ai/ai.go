@@ -8,25 +8,6 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
-type responseMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-type choice struct {
-	Index        int             `json:"index"`
-	Message      responseMessage `json:"message"`
-	FinishReason string          `json:"finish_reason"`
-}
-
-type APIResponse struct {
-	ID      string   `json:"id"`
-	Object  string   `json:"object"`
-	Created int64    `json:"created"`
-	Model   string   `json:"model"`
-	Choices []choice `json:"choices"`
-}
-
 func SendPrompt(diff string) (string, error) {
 	ctx := fmt.Sprintf(
 		"Analyze the following git diff and generate a commit message. "+
@@ -47,10 +28,7 @@ func SendPrompt(diff string) (string, error) {
 }
 
 func requestAI(apiKey, ctx string) (string, error) {
-	config := openai.DefaultConfig(apiKey)
-	config.BaseURL = "https://api.groq.com/openai/v1"
-
-	client := openai.NewClientWithConfig(config)
+	client := newClient(apiKey)
 
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
