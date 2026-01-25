@@ -4,7 +4,6 @@ go 1.24.3
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/joho/godotenv v1.5.1
 	github.com/pterm/pterm v0.12.81
 	github.com/rhysd/go-github-selfupdate v1.2.3
 	github.com/sashabaranov/go-openai v1.41.2

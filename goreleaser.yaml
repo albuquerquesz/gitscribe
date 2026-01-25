@@ -1,7 +1,7 @@
 project_name: gitscribe
 
 builds:
-  - main: ./cmd/gs
+  - main: ./main.go
     binary: gs
     ldflags:
       - -X main.version={{.Version}}

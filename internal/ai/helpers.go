@@ -13,4 +13,3 @@ func ValidateToken(apiKey string) bool {
 	_, err := client.ListModels(context.Background())
 	return err == nil
 }
-
