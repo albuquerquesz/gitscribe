@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"bytes"
@@ -19,7 +19,7 @@ var version = "1.0.2"
 * Copyright (c) 2025 Victor Albuquerque Arruda. All Rights Reserved.
 * */
 
-func main() {
+func salve() {
 	updateCmd := UpdateCLI(version)
 
 	rootCmd := &cobra.Command{
