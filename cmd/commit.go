@@ -9,8 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "1.0.2"
-
 var msg, branch string
 
 var commitCmd = &cobra.Command{
