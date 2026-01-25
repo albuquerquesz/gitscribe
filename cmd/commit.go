@@ -58,7 +58,7 @@ func commit(files []string) error {
 			return nil
 		}
 
-		result, err := ai.SendPrompt(context)
+		result, err := ai.SendPrompt(diff)
 		if err != nil {
 			aiSpinner.Fail(fmt.Sprintf("Error generating message with AI: %v", err))
 			return err
