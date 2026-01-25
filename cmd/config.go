@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/albqvictor1508/gitscribe/internal/store"
 	"github.com/albqvictor1508/gitscribe/internal/style"
 	"github.com/spf13/cobra"
+	"github.com/zalando/go-keyring"
 )
 
 var key string
@@ -27,25 +29,25 @@ func init() {
 
 func config() error {
 	apiKey, err := store.Get()
-	fmt.Printf("API KEY: %v\n", apiKey)
-	fmt.Printf("KEY: %v", key)
+	if err == nil && len(apiKey) > 0 && len(key) == 0 {
 
-	if err != nil {
-		fmt.Print(apiKey)
-		fmt.Print(key)
-
-		return err
+		fmt.Printf("your API key is %v !!", apiKey)
+		return nil
 	}
 
-	return nil
+	if !errors.Is(err, keyring.ErrNotFound) {
+		fmt.Print("salve")
+		return fmt.Errorf("error to get api key: %w", err)
+	}
 
-	if len(key) == 0 || len(apiKey) == 0 {
+	if len(key) == 0 {
 		result, err := style.Prompt("Enter your GROQ API Key...")
 		if err != nil {
 			return err
 		}
 
-		store.Save(result)
+		fmt.Print(result)
+		// store.Save(result)
 	}
 
 	return nil

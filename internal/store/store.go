@@ -17,3 +17,6 @@ func Get() (string, error) {
 	return keyring.Get(service, user)
 }
 
+func Delete() error {
+	return keyring.Delete(service, user)
+}
