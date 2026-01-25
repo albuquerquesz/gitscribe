@@ -7,11 +7,11 @@ import (
 )
 
 // THIS I`LL BE REPLACED WHEN CLI BUILD
-var version string = "v1.0.0"
+var v string = "v1.0.0"
 
 var rootCmd = &cobra.Command{
 	Use:     "gs",
-	Version: version,
+	Version: v,
 	Short:   "GitScribe: AI-powered commit messages",
 	Long: `GitScribe (gs) helps you generate meaningful commit messages
 using AI (Groq/Llama) and manages your workflow from staging to pushing.`,

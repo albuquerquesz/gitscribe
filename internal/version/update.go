@@ -2,69 +2,11 @@ package version
 
 import (
 	"fmt"
-	"log"
-	"os"
 
+	"github.com/albqvictor1508/gitscribe/internal/style"
 	"github.com/blang/semver"
-	"github.com/pterm/pterm"
 	"github.com/rhysd/go-github-selfupdate/selfupdate"
-	"github.com/spf13/cobra"
 )
-
-func UpdateCLI(version string) *cobra.Command {
-	updateCmd := &cobra.Command{
-		Use:   "update",
-		Short: "Update gitscribe to the latest version",
-		Run: func(cmd *cobra.Command, args []string) {
-			currentVersion, err := semver.Parse(version)
-			if err != nil {
-				log.Println("Error parsing current version (this may happen in dev mode):", err)
-				return
-			}
-
-			latest, err := CheckForUpdate(currentVersion)
-			if err != nil {
-				log.Println("Error checking for update:", err)
-				return
-			}
-
-			if latest == nil {
-				pterm.Info.Println("Current version is the latest")
-				return
-			}
-
-			pterm.DefaultBox.WithTitle("Update Available: v" + latest.Version.String()).Println(latest.ReleaseNotes)
-			pterm.Println()
-
-			confirmed, _ := pterm.DefaultInteractiveConfirm.
-				WithDefaultText("Do you want to update?").
-				Show()
-
-			if !confirmed {
-				log.Println("Update canceled")
-				return
-			}
-
-			exe, err := os.Executable()
-			if err != nil {
-				log.Println("Could not locate executable path")
-				return
-			}
-
-			pterm.Info.Println("Updating binary...")
-			if err := selfupdate.UpdateTo(latest.AssetURL, exe); err != nil {
-				if os.IsPermission(err) {
-					log.Println("Permission denied. Please run the update command with sudo: sudo gs update")
-					return
-				}
-				log.Println("Error occurred while updating binary:", err)
-				return
-			}
-			log.Println("Successfully updated to version", latest.Version)
-		},
-	}
-	return updateCmd
-}
 
 func CheckForUpdate(currentVersion semver.Version) (*selfupdate.Release, error) {
 	latest, found, err := selfupdate.DetectLatest("albqvictor1508/gitscribe")
@@ -79,8 +21,8 @@ func CheckForUpdate(currentVersion semver.Version) (*selfupdate.Release, error) 
 	return latest, nil
 }
 
-func ShowUpdate(version string) {
-	currentVersion, err := semver.Parse(version)
+func ShowUpdate(v string) {
+	currentVersion, err := semver.Parse(v)
 	if err != nil {
 		return
 	}
@@ -89,5 +31,5 @@ func ShowUpdate(version string) {
 	if err != nil || latest == nil {
 		return
 	}
-	pterm.DefaultBox.WithTitle("Update Available").Println("A new version of gitscribe (v" + latest.Version.String() + ") is available! Run 'gs update' to get it.")
+	style.Box("Update Available", "A new version of gitscribe (v"+latest.Version.String()+") is available! Run 'gs update' to get it.")
 }
