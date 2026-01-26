@@ -3,7 +3,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/albqvictor1508/gitscribe/internal/ai"
 	"github.com/albqvictor1508/gitscribe/internal/store"
@@ -29,21 +28,6 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 }
 
-func isKeyNotFoundError(err error) bool {
-	if err == nil {
-		return false
-	}
-	if errors.Is(err, keyring.ErrNotFound) {
-		return true
-	}
-
-	errMsg := strings.ToLower(err.Error())
-	return strings.Contains(errMsg, "não existe") ||
-		strings.Contains(errMsg, "not found") ||
-		strings.Contains(errMsg, "does not exist") ||
-		strings.Contains(errMsg, "no such")
-}
-
 func config() error {
 	apiKey, err := store.Get()
 	if err == nil && len(apiKey) > 0 && len(key) == 0 {
@@ -53,7 +37,7 @@ func config() error {
 		return nil
 	}
 
-	if err != nil && !isKeyNotFoundError(err) {
+	if err != nil && errors.Is(err, keyring.ErrNotFound) {
 		return fmt.Errorf("error to get api key: %w", err)
 	}
 

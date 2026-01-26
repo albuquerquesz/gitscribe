@@ -10,8 +10,7 @@ func ConfirmAction(msg string) bool {
 	pterm.DefaultBox.WithTitle("Commit Suggestion").Println(msg)
 	pterm.Println()
 
-	confirmed, _ := pterm.DefaultInteractiveConfirm.
-		Show()
+	confirmed, _ := pterm.DefaultInteractiveConfirm.Show()
 
 	return confirmed
 }
@@ -81,3 +80,4 @@ func InteractiveConfirm(msg string) bool {
 	confirmed, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
 	return confirmed
 }
+
