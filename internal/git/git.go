@@ -2,6 +2,7 @@ package git
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
@@ -60,6 +61,17 @@ func Commit(message string) error {
 
 	return nil
 }
+
+func IsInsideWorkTree() error {
+	cmd := exec.Command("git", "rev-parse", "--is-inside-work-tree")
+
+	if err := cmd.Run(); err != nil {
+		return errors.New("not inside a git repository")
+	}
+	
+	return nil
+}
+
 
 // Push pushes the changes to the specified branch on origin.
 func Push(branch string) error {
