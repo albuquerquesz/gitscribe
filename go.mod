@@ -1,4 +1,4 @@
-module github.com/albqvictor1508/gitscribe
+module github.com/albuquerquesz/gitscribe
 
 go 1.24.11
 

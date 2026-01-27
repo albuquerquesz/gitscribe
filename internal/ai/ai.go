@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/albqvictor1508/gitscribe/internal/store"
+	"github.com/albuquerquesz/gitscribe/internal/store"
 	openai "github.com/sashabaranov/go-openai"
 )
 

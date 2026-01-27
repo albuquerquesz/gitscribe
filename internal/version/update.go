@@ -3,13 +3,13 @@ package version
 import (
 	"fmt"
 
-	"github.com/albqvictor1508/gitscribe/internal/style"
+	"github.com/albuquerquesz/gitscribe/internal/style"
 	"github.com/blang/semver"
 	"github.com/rhysd/go-github-selfupdate/selfupdate"
 )
 
 func CheckForUpdate(currentVersion semver.Version) (*selfupdate.Release, error) {
-	latest, found, err := selfupdate.DetectLatest("albqvictor1508/gitscribe")
+	latest, found, err := selfupdate.DetectLatest("albuquerquesz/gitscribe")
 	if err != nil {
 		return nil, fmt.Errorf("error occurred while detecting version: %w", err)
 	}

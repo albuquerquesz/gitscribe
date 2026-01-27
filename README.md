@@ -32,7 +32,7 @@ You can install gitscribe in two ways:
 
 #### Linux
 
-1.  Go to the [latest release page](https://github.com/albqvictor1508/gitscribe/releases/latest).
+1.  Go to the [latest release page](https://github.com/albuquerquesz/gitscribe/releases/latest).
 2.  Download the binary for your operating system and architecture (e.g., `gs_linux_amd64.tar.gz`).
 3.  Extract the archive. You will find a binary file named `gs`.
     ```shell
@@ -49,7 +49,7 @@ You can install gitscribe in two ways:
 
 #### Windows
 
-1.  Go to the [latest release page](https://github.com/albqvictor1508/gitscribe/releases/latest).
+1.  Go to the [latest release page](https://github.com/albuquerquesz/gitscribe/releases/latest).
 2.  Download the binary for your operating system and architecture (e.g., `gs_windows_amd64.tar.gz`).
 3.  Extract the archive. You will find a binary file named `gs.exe`. You can use a tool like 7-Zip or WinRAR, or the `tar` command in PowerShell or Command Prompt:
     ```shell
@@ -65,7 +65,7 @@ You can install gitscribe in two ways:
 
 If you have Go installed, you can use `go install`:
 ```shell
-go install github.com/albqvictor1508/gitscribe/cmd/gs@latest
+go install github.com/albuquerquesz/gitscribe/cmd/gs@latest
 ```
 
 ## Usage

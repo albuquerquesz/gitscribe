@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/albqvictor1508/gitscribe/internal/ai"
-	"github.com/albqvictor1508/gitscribe/internal/store"
-	"github.com/albqvictor1508/gitscribe/internal/style"
+	"github.com/albuquerquesz/gitscribe/internal/ai"
+	"github.com/albuquerquesz/gitscribe/internal/store"
+	"github.com/albuquerquesz/gitscribe/internal/style"
 	"github.com/spf13/cobra"
 	"github.com/zalando/go-keyring"
 )
