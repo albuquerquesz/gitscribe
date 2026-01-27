@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/albqvictor1508/gitscribe/internal/ai"
-	"github.com/albqvictor1508/gitscribe/internal/git"
-	"github.com/albqvictor1508/gitscribe/internal/style"
-	"github.com/albqvictor1508/gitscribe/internal/version"
+	"github.com/albuquerquesz/gitscribe/internal/ai"
+	"github.com/albuquerquesz/gitscribe/internal/git"
+	"github.com/albuquerquesz/gitscribe/internal/style"
+	"github.com/albuquerquesz/gitscribe/internal/version"
 	"github.com/spf13/cobra"
 )
 

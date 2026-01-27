@@ -1,6 +1,6 @@
 package main
 
-import "github.com/albqvictor1508/gitscribe/cmd"
+import "github.com/albuquerquesz/gitscribe/cmd"
 
 func main() {
 	cmd.Exec()

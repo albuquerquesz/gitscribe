@@ -4,7 +4,7 @@ builds:
   - main: ./main.go
     binary: gs
     ldflags:
-      - -X github.com/albqvictor1508/gitscribe/cmd.v={{.Version}}
+      - -X github.com/albuquerquesz/gitscribe/cmd.v={{.Version}}
     goos:
       - linux
       - darwin
@@ -25,6 +25,6 @@ checksum:
 
 release:
   github:
-    owner: albqvictor1508
+    owner: albuquerquesz
     name: gitscribe
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/albqvictor1508/gitscribe/internal/style"
-	"github.com/albqvictor1508/gitscribe/internal/version"
+	"github.com/albuquerquesz/gitscribe/internal/style"
+	"github.com/albuquerquesz/gitscribe/internal/version"
 	"github.com/blang/semver"
 	"github.com/rhysd/go-github-selfupdate/selfupdate"
 	"github.com/spf13/cobra"
