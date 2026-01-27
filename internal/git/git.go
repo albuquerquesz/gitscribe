@@ -44,15 +44,20 @@ func GetStagedDiff() (string, error) {
 	return diffOutput.String(), nil
 }
 
-// Commit performs a git commit with the given message.
 func Commit(message string) error {
 	var output bytes.Buffer
-	cmd := exec.Command("git", "commit", "-m", message)
+
+	cmd := exec.Command("git", "commit", "-F", "-")
+
+	cmd.Stdin = strings.NewReader(message)
+
 	cmd.Stdout = &output
 	cmd.Stderr = &output
+
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error while committing: %s", output.String())
 	}
+
 	return nil
 }
 
