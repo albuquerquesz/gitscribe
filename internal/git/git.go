@@ -15,7 +15,7 @@ func StageFiles(files []string) error {
 	}
 
 	args := append([]string{"add"}, files...)
-	
+
 	cmd := exec.Command("git", args...)
 
 	cmd.Stdout = io.Discard
@@ -31,7 +31,6 @@ func StageFiles(files []string) error {
 	return nil
 }
 
-
 func GetStagedDiff() (string, error) {
 	var diffOutput bytes.Buffer
 	cmd := exec.Command("git", "diff", "--staged")
@@ -40,7 +39,7 @@ func GetStagedDiff() (string, error) {
 	cmd.Stderr = &diffOutput
 
 	if err := cmd.Run(); err != nil {
-	return "", fmt.Errorf("git diff --staged failed: %w\n%s", err, diffOutput.String())
+		return "", fmt.Errorf("git diff --staged failed: %w\n%s", err, diffOutput.String())
 	}
 	return diffOutput.String(), nil
 }
@@ -68,12 +67,10 @@ func IsInsideWorkTree() error {
 	if err := cmd.Run(); err != nil {
 		return errors.New("not inside a git repository")
 	}
-	
+
 	return nil
 }
 
-
-// Push pushes the changes to the specified branch on origin.
 func Push(branch string) error {
 	var output bytes.Buffer
 	cmd := exec.Command("git", "push", "origin", branch)
@@ -85,7 +82,6 @@ func Push(branch string) error {
 	return nil
 }
 
-// GetCurrentBranch returns the name of the current git branch.
 func GetCurrentBranch() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	output, err := cmd.Output()
