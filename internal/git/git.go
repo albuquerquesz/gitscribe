@@ -8,18 +8,28 @@ import (
 	"strings"
 )
 
-// StageFiles stages the specified files.
 func StageFiles(files []string) error {
-	for _, file := range files {
-		cmd := exec.Command("git", "add", file)
-		cmd.Stdout = io.Discard
-		cmd.Stderr = io.Discard
-		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("failed to stage file %s: %v", file, err)
-		}
+	if len(files) == 0 {
+		return nil
 	}
+
+	args := append([]string{"add"}, files...)
+	
+	cmd := exec.Command("git", args...)
+
+	cmd.Stdout = io.Discard
+
+	var stderr bytes.Buffer
+
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("git add failed: %s", stderr.String())
+	}
+
 	return nil
 }
+
 
 // GetStagedDiff returns the diff of staged changes.
 func GetStagedDiff() (string, error) {
