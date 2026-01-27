@@ -31,15 +31,15 @@ func StageFiles(files []string) error {
 }
 
 
-// GetStagedDiff returns the diff of staged changes.
 func GetStagedDiff() (string, error) {
 	var diffOutput bytes.Buffer
 	cmd := exec.Command("git", "diff", "--staged")
+
 	cmd.Stdout = &diffOutput
 	cmd.Stderr = &diffOutput
 
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("failed to get git diff: %s", diffOutput.String())
+	return "", fmt.Errorf("git diff --staged failed: %w\n%s", err, diffOutput.String())
 	}
 	return diffOutput.String(), nil
 }
