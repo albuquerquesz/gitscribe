@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Example command using the multi-agent system
 var multiAgentCmd = &cobra.Command{
 	Use:   "ask",
 	Short: "Send a prompt to an AI agent",
@@ -48,30 +47,25 @@ func init() {
 }
 
 func runMultiAgent(prompt string) error {
-	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Handle --list flag
 	if agentList {
 		return listAgents(cfg)
 	}
 
-	// Create router with specified strategy
 	strategy := router.Strategy(routerStrategy)
 	r := router.NewRouter(cfg, strategy)
 	defer r.Close()
 
-	// Prepare request context
 	reqCtx := router.RequestContext{
 		UserPrompt:     prompt,
 		PreferredAgent: agentName,
 		Complexity:     detectComplexity(prompt),
 	}
 
-	// Prepare messages
 	messages := []agents.Message{
 		{
 			Role:    "user",
@@ -84,7 +78,6 @@ func runMultiAgent(prompt string) error {
 		Timeout:     60 * time.Second,
 	}
 
-	// Route the request
 	fmt.Println("🤖 Sending request...")
 
 	ctx := context.Background()
@@ -93,7 +86,6 @@ func runMultiAgent(prompt string) error {
 		return fmt.Errorf("request failed: %w", err)
 	}
 
-	// Display response
 	fmt.Printf("\n📤 Response (Model: %s):\n", resp.Model)
 	fmt.Println(resp.Content)
 	fmt.Printf("\n📊 Tokens used: %d (prompt: %d, completion: %d)\n",
@@ -102,7 +94,6 @@ func runMultiAgent(prompt string) error {
 	return nil
 }
 
-// listAgents displays all configured agents
 func listAgents(cfg *config.Config) error {
 	fmt.Println("📋 Configured Agents:")
 	fmt.Println()
@@ -124,7 +115,6 @@ func listAgents(cfg *config.Config) error {
 		fmt.Printf("    Status: %s\n", status)
 		fmt.Printf("    Priority: %d\n", agent.Priority)
 
-		// Check if API key is configured
 		keyMgr := secrets.NewAgentKeyManager()
 		hasKey := keyMgr.KeyExists(keyMgr.GetAgentKeyName(agent.Name))
 		keyStatus := "❌ Not configured"
@@ -138,7 +128,6 @@ func listAgents(cfg *config.Config) error {
 	return nil
 }
 
-// detectComplexity estimates prompt complexity
 func detectComplexity(prompt string) string {
 	length := len(prompt)
 

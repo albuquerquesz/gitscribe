@@ -3,12 +3,16 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+	"syscall"
 	"time"
 
 	"github.com/albuquerquesz/gitscribe/internal/auth"
 	appconfig "github.com/albuquerquesz/gitscribe/internal/config"
 	"github.com/albuquerquesz/gitscribe/internal/providers"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var (
@@ -59,17 +63,61 @@ var authLogoutCmd = &cobra.Command{
 	},
 }
 
+var authSetKeyCmd = &cobra.Command{
+	Use:   "set-key",
+	Short: "Manually set an API key for a provider",
+	Long: `Manually set an API key for an AI provider.
+This is useful for providers that do not support OAuth2 or if you prefer to use your own API key.`,
+	Example: `  gs auth set-key --provider groq
+  gs auth set-key --provider openai`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runSetKey()
+	},
+}
+
 func init() {
-	authCmd.Flags().StringVarP(&authProvider, "provider", "p", "anthropic", "OAuth provider (anthropic)")
+	authCmd.Flags().StringVarP(&authProvider, "provider", "p", "anthropic", "OAuth provider (anthropic, openai)")
 	authCmd.Flags().IntVar(&authPort, "port", 8085, "Local port for OAuth callback server")
 	authCmd.Flags().BoolVar(&authNoBrowser, "no-browser", false, "Don't open browser automatically")
 	authCmd.Flags().DurationVar(&authTimeout, "timeout", 5*time.Minute, "OAuth flow timeout")
 
 	authLogoutCmd.Flags().StringVarP(&authProvider, "provider", "p", "anthropic", "Provider to logout from")
+	
+	authSetKeyCmd.Flags().StringVarP(&authProvider, "provider", "p", "", "Provider to set the key for")
+	authSetKeyCmd.MarkFlagRequired("provider")
 
 	authCmd.AddCommand(authStatusCmd)
 	authCmd.AddCommand(authLogoutCmd)
+	authCmd.AddCommand(authSetKeyCmd)
 	rootCmd.AddCommand(authCmd)
+}
+
+func runSetKey() error {
+	fmt.Printf("Enter API key for %s: ", authProvider)
+	
+	byteKey, err := term.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		return fmt.Errorf("failed to read password: %w", err)
+	}
+	fmt.Println() // New line after hidden input
+
+	apiKey := strings.TrimSpace(string(byteKey))
+	if apiKey == "" {
+		return fmt.Errorf("API key cannot be empty")
+	}
+
+	// Store the API key in keyring
+	if err := auth.StoreAPIKey(authProvider, apiKey); err != nil {
+		return fmt.Errorf("failed to store API key: %w", err)
+	}
+
+	// Update agent profile to use the manually set key
+	if err := updateAgentProfile(authProvider, apiKey); err != nil {
+		fmt.Printf("Warning: Could not update agent profile: %v\n", err)
+	}
+
+	fmt.Printf("✓ API key for %s stored successfully in system keyring\n", authProvider)
+	return nil
 }
 
 func runAuth() error {
