@@ -231,11 +231,6 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 
 	pterm.Info.Printf("Model %s from %s requires authentication.\n", m.Name, m.Provider)
 
-	pConfig, err := manager.GetProviderConfig(m.Provider)
-	if err != nil {
-		return err
-	}
-
 	if m.Provider == "openai" || m.Provider == "anthropic" {
 		confirm, _ := pterm.DefaultInteractiveConfirm.
 			WithDefaultText(fmt.Sprintf("Do you want to log in to %s via browser?", m.Provider)).
