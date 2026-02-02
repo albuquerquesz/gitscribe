@@ -30,10 +30,8 @@ func ConfirmAction(msg string) bool {
 		Negative("No").
 		Value(&confirm).
 		Run()
-	if err != nil {
-		return false
-	}
-	return confirm
+
+	return err == nil && confirm
 }
 
 func GetASCIIName() {
