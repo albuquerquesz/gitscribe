@@ -99,7 +99,7 @@ func runSetKey() error {
 	if err != nil {
 		return fmt.Errorf("failed to read password: %w", err)
 	}
-	fmt.Println() // New line after hidden input
+	fmt.Println()
 
 	apiKey := strings.TrimSpace(string(byteKey))
 	if apiKey == "" {
