@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"text/tabwriter"
 	"time"
 
+	"github.com/albuquerquesz/gitscribe/internal/auth"
 	"github.com/albuquerquesz/gitscribe/internal/catalog"
-	"github.com/albuquerquesz/gitscribe/internal/store"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
@@ -28,6 +30,14 @@ Models can be viewed from the static catalog or fetched dynamically
 from provider APIs when available.`,
 }
 
+var modelsCmd = &cobra.Command{
+	Use:   "models",
+	Short: "Browse and enable AI models interactively",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runModelsInteractive()
+	},
+}
+
 var catalogListCmd = &cobra.Command{
 	Use:   "list [provider]",
 	Short: "List available models",
@@ -45,7 +55,6 @@ var catalogListCmd = &cobra.Command{
 		filterCapability, _ := cmd.Flags().GetString("capability")
 
 		if len(args) > 0 {
-			// List models for specific provider
 			provider := args[0]
 			models, err := manager.GetModelsByProvider(provider)
 			if err != nil {
@@ -55,7 +64,6 @@ var catalogListCmd = &cobra.Command{
 			fmt.Printf("Models for %s:\n\n", provider)
 			printModels(models, showDetails)
 		} else {
-			// List all models or filtered
 			var models []catalog.Model
 
 			if filterTier != "" || filterCapability != "" {
@@ -69,7 +77,6 @@ var catalogListCmd = &cobra.Command{
 				models = manager.FilterModels(opts)
 				fmt.Printf("Filtered models (%d found):\n\n", len(models))
 			} else if showAll {
-				// Get all models from all providers
 				providers := manager.ListProviders()
 				for _, p := range providers {
 					pmodels, _ := manager.GetModelsByProvider(p)
@@ -77,7 +84,6 @@ var catalogListCmd = &cobra.Command{
 				}
 				fmt.Printf("All models (%d found):\n\n", len(models))
 			} else {
-				// List providers
 				providers := manager.ListProviders()
 				fmt.Println("Available providers:")
 				fmt.Println()
@@ -126,20 +132,6 @@ var catalogShowCmd = &cobra.Command{
 var catalogRefreshCmd = &cobra.Command{
 	Use:   "refresh [provider]",
 	Short: "Refresh model list from provider APIs",
-	Long: `Refresh the model catalog by fetching from provider APIs.
-
-This updates the local cache with the latest model information.
-Only providers that support dynamic fetching will be updated.
-
-Examples:
-  # Refresh all providers
-  gitscribe catalog refresh
-
-  # Refresh specific provider
-  gitscribe catalog refresh groq
-
-  # Force refresh (bypass rate limits)
-  gitscribe catalog refresh groq --force`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		manager, err := getCatalogManager()
 		if err != nil {
@@ -176,130 +168,90 @@ Examples:
 	},
 }
 
-var catalogStatusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Show catalog cache status",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		manager, err := getCatalogManager()
-		if err != nil {
-			return err
-		}
-
-		status := manager.GetCacheStatus()
-
-		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		fmt.Fprintln(w, "Provider\tLast Fetched\tAge\tStale\tCan Refresh")
-		fmt.Fprintln(w, "--------\t------------\t---\t-----\t-----------")
-
-		for provider, s := range status {
-			lastFetched := "never"
-			if !s.LastFetched.IsZero() {
-				lastFetched = s.LastFetched.Format("2006-01-02 15:04")
-			}
-
-			age := formatDuration(s.Age)
-			stale := "no"
-			if s.IsStale {
-				stale = "yes"
-			}
-			canRefresh := "no"
-			if s.CanRefresh {
-				canRefresh = "yes"
-			}
-
-			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
-				provider, lastFetched, age, stale, canRefresh)
-		}
-
-		w.Flush()
-		return nil
-	},
-}
-
-var catalogSuggestCmd = &cobra.Command{
-	Use:   "suggest",
-	Short: "Suggest a model based on requirements",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		manager, err := getCatalogManager()
-		if err != nil {
-			return err
-		}
-
-		// Parse flags
-		provider, _ := cmd.Flags().GetString("provider")
-		useCase, _ := cmd.Flags().GetString("use-case")
-		maxPrice, _ := cmd.Flags().GetFloat64("max-price")
-		minContext, _ := cmd.Flags().GetInt("min-context")
-		needsVision, _ := cmd.Flags().GetBool("vision")
-		needsTools, _ := cmd.Flags().GetBool("tools")
-
-		var model *catalog.Model
-
-		if useCase != "" {
-			// Get recommendations for use case
-			recommended := manager.GetRecommendedModels(useCase)
-			if len(recommended) == 0 {
-				return fmt.Errorf("no models recommended for: %s", useCase)
-			}
-
-			fmt.Printf("Models recommended for '%s':\n\n", useCase)
-			for _, m := range recommended {
-				fmt.Printf("- %s (%s) from %s\n", m.Name, m.ID, m.Provider)
-			}
-			return nil
-		}
-
-		// Suggest based on requirements
-		req := catalog.ModelRequirements{
-			Provider:       provider,
-			MinContextSize: minContext,
-			MaxPrice:       maxPrice,
-			RequiresVision: needsVision,
-			RequiresTools:  needsTools,
-		}
-
-		caps, _ := cmd.Flags().GetStringSlice("capability")
-		for _, cap := range caps {
-			req.Capabilities = append(req.Capabilities, catalog.Capability(cap))
-		}
-
-		model, err = manager.SuggestModel(req)
-		if err != nil {
-			return fmt.Errorf("no suitable model found: %w", err)
-		}
-
-		fmt.Printf("Suggested model: %s\n\n", model.Name)
-		printModelDetails(model)
-		return nil
-	},
-}
-
 func init() {
 	rootCmd.AddCommand(catalogCmd)
+	rootCmd.AddCommand(modelsCmd)
 
 	catalogCmd.AddCommand(catalogListCmd)
 	catalogCmd.AddCommand(catalogShowCmd)
 	catalogCmd.AddCommand(catalogRefreshCmd)
-	catalogCmd.AddCommand(catalogStatusCmd)
-	catalogCmd.AddCommand(catalogSuggestCmd)
 
-	// List flags
 	catalogListCmd.Flags().BoolP("all", "a", false, "Show all models from all providers")
 	catalogListCmd.Flags().BoolP("details", "d", false, "Show detailed information")
-	catalogListCmd.Flags().String("tier", "", "Filter by pricing tier (free/budget/standard/premium)")
-	catalogListCmd.Flags().String("capability", "", "Filter by capability (chat/vision/code/reasoning)")
+}
 
-	// Refresh flags
-	catalogRefreshCmd.Flags().BoolP("force", "f", false, "Force refresh (bypass rate limits)")
+func runModelsInteractive() error {
+	manager, err := getCatalogManager()
+	if err != nil {
+		return err
+	}
 
-	// Suggest flags
-	catalogSuggestCmd.Flags().String("provider", "", "Preferred provider")
-	catalogSuggestCmd.Flags().String("use-case", "", "Use case (coding/analysis/chat)")
-	catalogSuggestCmd.Flags().Float64("max-price", 0, "Maximum price per 1M tokens")
-	catalogSuggestCmd.Flags().Int("min-context", 0, "Minimum context window size")
-	catalogSuggestCmd.Flags().Bool("vision", false, "Requires vision capabilities")
-	catalogSuggestCmd.Flags().Bool("tools", false, "Requires tool/function calling")
-	catalogSuggestCmd.Flags().StringSlice("capability", nil, "Required capabilities")
+	pterm.DefaultHeader.WithFullWidth().Println("AI Model Catalog")
+	
+	providers := manager.ListProviders()
+	options := []string{}
+	
+	allModels := []catalog.Model{}
+	for _, p := range providers {
+		models, _ := manager.GetModelsByProvider(p)
+		for _, m := range models {
+			if m.IsAvailable() {
+				options = append(options, fmt.Sprintf("%s (%s) - %s", m.Name, m.Provider, m.ID))
+				allModels = append(allModels, m)
+			}
+		}
+	}
+
+	selected, _ := pterm.DefaultInteractiveSelect.
+		WithDefaultText("Select a model to enable").
+		WithOptions(options).
+		Show()
+
+	var selectedModel catalog.Model
+	for _, m := range allModels {
+		if strings.Contains(selected, m.ID) && strings.Contains(selected, m.Provider) {
+			selectedModel = m
+			break
+		}
+	}
+
+	return handleModelSelection(selectedModel, manager)
+}
+
+func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) error {
+	isAuth := false
+	if apiKey, err := auth.LoadAPIKey(m.Provider); err == nil && apiKey != "" {
+		isAuth = true
+	}
+
+	if isAuth {
+		pterm.Success.Printf("Model %s is already configured and ready!\n", m.Name)
+		return nil
+	}
+
+	pterm.Info.Printf("Model %s from %s requires authentication.\n", m.Name, m.Provider)
+
+	pConfig, err := manager.GetProviderConfig(m.Provider)
+	if err != nil {
+		return err
+	}
+
+	if m.Provider == "openai" || m.Provider == "anthropic" {
+		confirm, _ := pterm.DefaultInteractiveConfirm.
+			WithDefaultText(fmt.Sprintf("Do you want to log in to %s via browser?", m.Provider)).
+			Show()
+		
+		if confirm {
+			authProvider = m.Provider
+			return runAuth()
+		}
+	} else {
+		pterm.Info.Printf("Please provide an API key for %s\n", m.Provider)
+		authProvider = m.Provider
+		return runSetKey()
+	}
+
+	return nil
 }
 
 func getCatalogManager() (*catalog.CatalogManager, error) {
@@ -309,8 +261,7 @@ func getCatalogManager() (*catalog.CatalogManager, error) {
 			MinRefreshInterval: 1 * time.Hour,
 		},
 		APIKeyResolver: func(provider string) (string, error) {
-			// Get API key from keyring based on provider
-			return store.GetProviderKey(provider)
+			return auth.LoadAPIKey(provider)
 		},
 	}
 

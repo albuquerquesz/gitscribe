@@ -18,7 +18,7 @@ var configCmd = &cobra.Command{
 	Short: "",
 	Long:  "",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return config()
+		return runConfig()
 	},
 }
 
@@ -28,7 +28,7 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 }
 
-func config() error {
+func runConfig() error {
 	apiKey, err := store.Get()
 	if err == nil && len(apiKey) > 0 && len(key) == 0 {
 		maskedKey := style.StringMask(apiKey)
