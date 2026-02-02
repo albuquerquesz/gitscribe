@@ -191,7 +191,6 @@ func runAuth() error {
 }
 
 func checkAuthStatus() error {
-	// Check Anthropic
 	isAuth, err := auth.IsAuthenticated("anthropic")
 	if err != nil {
 		fmt.Printf("anthropic: Error checking status: %v\n", err)
@@ -201,14 +200,14 @@ func checkAuthStatus() error {
 		fmt.Printf("anthropic: ✗ Not authenticated\n")
 	}
 
-	// Check for stored API keys
-	if apiKey, err := auth.LoadAPIKey("anthropic"); err == nil && apiKey != "" {
-		masked := apiKey[:4] + "..." + apiKey[len(apiKey)-4:]
-		fmt.Printf("anthropic: ✓ API key stored (%s)\n", masked)
-	} else {
+	apiKey, err := auth.LoadAPIKey("anthropic")
+	if err != nil || apiKey == "" {
 		fmt.Printf("anthropic: ✗ No API key stored\n")
+		return nil
 	}
 
+	masked := apiKey[:4] + "..." + apiKey[len(apiKey)-4:]
+	fmt.Printf("anthropic: ✓ API key stored (%s)\n", masked)
 	return nil
 }
 

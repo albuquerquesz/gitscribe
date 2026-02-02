@@ -196,11 +196,12 @@ func runModelsInteractive() error {
 	for _, p := range providers {
 		models, _ := manager.GetModelsByProvider(p)
 		for _, m := range models {
-			if m.IsAvailable() {
-				label := fmt.Sprintf("%s (%s)", m.Name, m.Provider)
-				options = append(options, huh.NewOption(label, m.ID))
-				allModels = append(allModels, m)
+			if !m.IsAvailable() {
+				continue
 			}
+			label := fmt.Sprintf("%s (%s)", m.Name, m.Provider)
+			options = append(options, huh.NewOption(label, m.ID))
+			allModels = append(allModels, m)
 		}
 	}
 
@@ -214,42 +215,35 @@ func runModelsInteractive() error {
 		return err
 	}
 
-	var selectedModel catalog.Model
 	for _, m := range allModels {
 		if m.ID == selectedID {
-			selectedModel = m
-			break
+			return handleModelSelection(m, manager)
 		}
 	}
 
-	return handleModelSelection(selectedModel, manager)
+	return fmt.Errorf("selected model not found")
 }
 
 func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) error {
-	isAuth := false
-	if apiKey, err := auth.LoadAPIKey(m.Provider); err == nil && apiKey != "" {
-		isAuth = true
-	}
-
-	if isAuth {
-		style.Success(fmt.Sprintf("Model %s is already configured and ready!\n", m.Name))
+	apiKey, err := auth.LoadAPIKey(m.Provider)
+	if err == nil && apiKey != "" {
+		style.Success(fmt.Sprintf("Model %s is already configured and ready!", m.Name))
 		return nil
 	}
 
-	style.Info(fmt.Sprintf("Model %s from %s requires authentication.\n", m.Name, m.Provider))
+	style.Info(fmt.Sprintf("Model %s from %s requires authentication.", m.Name, m.Provider))
 
 	if m.Provider == "openai" || m.Provider == "anthropic" {
-		if style.ConfirmAction(fmt.Sprintf("Do you want to log in to %s via browser?", m.Provider)) {
-			authProvider = m.Provider
-			return runAuth()
+		if !style.ConfirmAction(fmt.Sprintf("Do you want to log in to %s via browser?", m.Provider)) {
+			return nil
 		}
-	} else {
-		style.Info(fmt.Sprintf("Please provide an API key for %s\n", m.Provider))
 		authProvider = m.Provider
-		return runSetKey()
+		return runAuth()
 	}
 
-	return nil
+	style.Info(fmt.Sprintf("Please provide an API key for %s", m.Provider))
+	authProvider = m.Provider
+	return runSetKey()
 }
 
 func getCatalogManager() (*catalog.CatalogManager, error) {
