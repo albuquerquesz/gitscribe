@@ -10,7 +10,8 @@ import (
 
 	"github.com/albuquerquesz/gitscribe/internal/auth"
 	"github.com/albuquerquesz/gitscribe/internal/catalog"
-	"github.com/pterm/pterm"
+	"github.com/albuquerquesz/gitscribe/internal/style"
+	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 )
 
@@ -186,30 +187,36 @@ func runModelsInteractive() error {
 		return err
 	}
 
-	pterm.DefaultHeader.WithFullWidth().Println("AI Model Catalog")
+	fmt.Println(style.TitleStyle.Render("\n AI Model Catalog"))
 	
 	providers := manager.ListProviders()
-	options := []string{}
+	var options []huh.Option[string]
 	
 	allModels := []catalog.Model{}
 	for _, p := range providers {
 		models, _ := manager.GetModelsByProvider(p)
 		for _, m := range models {
 			if m.IsAvailable() {
-				options = append(options, fmt.Sprintf("%s (%s) - %s", m.Name, m.Provider, m.ID))
+				label := fmt.Sprintf("%s (%s)", m.Name, m.Provider)
+				options = append(options, huh.NewOption(label, m.ID))
 				allModels = append(allModels, m)
 			}
 		}
 	}
 
-	selected, _ := pterm.DefaultInteractiveSelect.
-		WithDefaultText("Select a model to enable").
-		WithOptions(options).
-		Show()
+	var selectedID string
+	err = huh.NewSelect[string]().
+		Title("Select a model to enable").
+		Options(options...).
+		Value(&selectedID).
+		Run()
+	if err != nil {
+		return err
+	}
 
 	var selectedModel catalog.Model
 	for _, m := range allModels {
-		if strings.Contains(selected, m.ID) && strings.Contains(selected, m.Provider) {
+		if m.ID == selectedID {
 			selectedModel = m
 			break
 		}
@@ -225,23 +232,19 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 	}
 
 	if isAuth {
-		pterm.Success.Printf("Model %s is already configured and ready!\n", m.Name)
+		style.Success(fmt.Sprintf("Model %s is already configured and ready!\n", m.Name))
 		return nil
 	}
 
-	pterm.Info.Printf("Model %s from %s requires authentication.\n", m.Name, m.Provider)
+	style.Info(fmt.Sprintf("Model %s from %s requires authentication.\n", m.Name, m.Provider))
 
 	if m.Provider == "openai" || m.Provider == "anthropic" {
-		confirm, _ := pterm.DefaultInteractiveConfirm.
-			WithDefaultText(fmt.Sprintf("Do you want to log in to %s via browser?", m.Provider)).
-			Show()
-		
-		if confirm {
+		if style.ConfirmAction(fmt.Sprintf("Do you want to log in to %s via browser?", m.Provider)) {
 			authProvider = m.Provider
 			return runAuth()
 		}
 	} else {
-		pterm.Info.Printf("Please provide an API key for %s\n", m.Provider)
+		style.Info(fmt.Sprintf("Please provide an API key for %s\n", m.Provider))
 		authProvider = m.Provider
 		return runSetKey()
 	}

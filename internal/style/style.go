@@ -1,83 +1,126 @@
 package style
 
 import (
+	"fmt"
 	"time"
 
-	"github.com/pterm/pterm"
+	"github.com/charmbracelet/huh"
+	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	SuccessStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Bold(true)
+	ErrorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Bold(true)
+	InfoStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("39"))
+	WarningStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("208"))
+	TitleStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("99")).Bold(true).MarginBottom(1)
+	BoxStyle     = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("62")).
+			Padding(1, 2).
+			MarginTop(1).
+			MarginBottom(1)
 )
 
 func ConfirmAction(msg string) bool {
-	pterm.DefaultBox.WithTitle("Commit Suggestion").Println(msg)
-	pterm.Println()
-
-	confirmed, _ := pterm.DefaultInteractiveConfirm.Show()
-
-	return confirmed
+	var confirm bool
+	err := huh.NewConfirm().
+		Title(msg).
+		Affirmative("Yes").
+		Negative("No").
+		Value(&confirm).
+		Run()
+	if err != nil {
+		return false
+	}
+	return confirm
 }
 
 func GetASCIIName() {
 	ascii := `
-
            /$$   /$$                                  /$$ /$$
           |__/  | $$
   /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
- /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$ 
+ /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$
 | $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$
-| $$  | $$| $$  | $$ /$$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
+| $$  | $$| $$  | $$ /$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
 |  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$
  \____  $$|__/   \___/ |_______/  \_______/|__/      |__/|_______/  \_______/
  /$$  \ $$
 |  $$$$$$/
  \______/
 `
-
-	pterm.DefaultBasicText.Println(pterm.FgGreen.Sprint(ascii))
-	time.Sleep(time.Second)
+	fmt.Println(SuccessStyle.Render(ascii))
+	time.Sleep(500 * time.Millisecond)
 }
 
-func Spinner(msg string) *pterm.SpinnerPrinter {
-	addSpinner, _ := pterm.DefaultSpinner.WithSequence("|", "/", "-", "\\ ").Start()
-	addSpinner.UpdateText(msg)
+type SimpleSpinner struct {
+	message string
+}
 
-	return addSpinner
+func (s *SimpleSpinner) Stop() {
+	// Simple cleanup
+}
+
+func (s *SimpleSpinner) Success(msg string) {
+	fmt.Println(SuccessStyle.Render("✓ " + msg))
+}
+
+func (s *SimpleSpinner) Fail(msg string) {
+	fmt.Println(ErrorStyle.Render("✖ " + msg))
+}
+
+func (s *SimpleSpinner) Warning(msg string) {
+	fmt.Println(WarningStyle.Render("⚠ " + msg))
+}
+
+func (s *SimpleSpinner) UpdateText(msg string) {
+	s.message = msg
+}
+
+func Spinner(msg string) *SimpleSpinner {
+	fmt.Printf("⏳ %s...\n", msg)
+	return &SimpleSpinner{message: msg}
 }
 
 func Prompt(label string) (string, error) {
-	return pterm.DefaultInteractiveTextInput.WithDefaultText(label).WithMask("*").Show()
+	var input string
+	err := huh.NewInput().
+		Title(label).
+		EchoMode(huh.EchoModePassword).
+		Value(&input).
+		Run()
+	return input, err
 }
 
 func StringMask(str string) string {
-	mask := "****************"
-	length := 8
-
-	if len(str) > length {
-		mask = str[:length] + "****************"
+	if len(str) <= 8 {
+		return "********"
 	}
-
-	return mask
+	return str[:8] + "********"
 }
 
 func Info(msg string) {
-	pterm.Info.Println(msg)
+	fmt.Println(InfoStyle.Render("ℹ " + msg))
 }
 
 func Success(msg string) {
-	pterm.Success.Println(msg)
+	fmt.Println(SuccessStyle.Render("✓ " + msg))
 }
 
 func Error(msg string) {
-	pterm.Error.Println(msg)
+	fmt.Println(ErrorStyle.Render("✖ " + msg))
 }
 
 func Warning(msg string) {
-	pterm.Warning.Println(msg)
+	fmt.Println(WarningStyle.Render("⚠ " + msg))
 }
 
 func Box(title, content string) {
-	pterm.DefaultBox.WithTitle(title).Println(content)
+	styledContent := fmt.Sprintf("%s\n\n%s", TitleStyle.Render(title), content)
+	fmt.Println(BoxStyle.Render(styledContent))
 }
 
 func InteractiveConfirm(msg string) bool {
-	confirmed, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
-	return confirmed
+	return ConfirmAction(msg)
 }
