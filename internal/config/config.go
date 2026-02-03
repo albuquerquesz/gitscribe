@@ -13,7 +13,6 @@ const (
 	ConfigFileName = "config.yaml"
 )
 
-
 type AgentProvider string
 
 const (
@@ -23,8 +22,8 @@ const (
 	ProviderGemini     AgentProvider = "gemini"
 	ProviderOllama     AgentProvider = "ollama"
 	ProviderOpenRouter AgentProvider = "openrouter"
+	ProviderOpenCode   AgentProvider = "opencode"
 )
-
 
 type AgentProfile struct {
 	Name         string        `yaml:"name" json:"name"`
@@ -35,12 +34,10 @@ type AgentProfile struct {
 	MaxTokens    int           `yaml:"max_tokens" json:"max_tokens"`
 	Timeout      int           `yaml:"timeout_seconds" json:"timeout_seconds"`
 	Enabled      bool          `yaml:"enabled" json:"enabled"`
-	Priority     int           `yaml:"priority" json:"priority"` 
+	Priority     int           `yaml:"priority" json:"priority"`
 	SystemPrompt string        `yaml:"system_prompt,omitempty" json:"system_prompt,omitempty"`
-	
-	KeyringKey string `yaml:"keyring_key" json:"keyring_key"` 
+	KeyringKey   string        `yaml:"keyring_key" json:"keyring_key"`
 }
-
 
 type RoutingRule struct {
 	Name         string   `yaml:"name" json:"name"`
@@ -48,7 +45,6 @@ type RoutingRule struct {
 	Conditions   []string `yaml:"conditions" json:"conditions"`
 	Priority     int      `yaml:"priority" json:"priority"`
 }
-
 
 type GlobalConfig struct {
 	DefaultAgent   string            `yaml:"default_agent" json:"default_agent"`
@@ -59,14 +55,12 @@ type GlobalConfig struct {
 	CustomHeaders  map[string]string `yaml:"custom_headers,omitempty" json:"custom_headers,omitempty"`
 }
 
-
 type Config struct {
 	Version string         `yaml:"version" json:"version"`
 	Global  GlobalConfig   `yaml:"global" json:"global"`
 	Agents  []AgentProfile `yaml:"agents" json:"agents"`
 	Routing []RoutingRule  `yaml:"routing" json:"routing"`
 }
-
 
 func DefaultConfig() *Config {
 	return &Config{
@@ -133,82 +127,64 @@ func DefaultConfig() *Config {
 	}
 }
 
-
 func GetConfigPath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get home directory: %w", err)
 	}
-
 	configDir := filepath.Join(home, ConfigDirName)
 	return filepath.Join(configDir, ConfigFileName), nil
 }
-
 
 func EnsureConfigDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get home directory: %w", err)
 	}
-
 	configDir := filepath.Join(home, ConfigDirName)
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return "", fmt.Errorf("failed to create config directory: %w", err)
 	}
-
 	return configDir, nil
 }
-
 
 func Load() (*Config, error) {
 	configPath, err := GetConfigPath()
 	if err != nil {
 		return nil, err
 	}
-
-	
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		return DefaultConfig(), nil
 	}
-
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
-
 	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
-
 	return &cfg, nil
 }
-
 
 func (c *Config) Save() error {
 	_, err := EnsureConfigDir()
 	if err != nil {
 		return err
 	}
-
 	configPath, err := GetConfigPath()
 	if err != nil {
 		return err
 	}
-
 	data, err := yaml.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
-
-	
 	if err := os.WriteFile(configPath, data, 0600); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
-
 	return nil
 }
-
 
 func (c *Config) GetAgentByName(name string) (*AgentProfile, error) {
 	for i := range c.Agents {
@@ -219,10 +195,8 @@ func (c *Config) GetAgentByName(name string) (*AgentProfile, error) {
 	return nil, fmt.Errorf("agent profile not found: %s", name)
 }
 
-
 func (c *Config) GetDefaultAgent() (*AgentProfile, error) {
 	if c.Global.DefaultAgent == "" {
-		
 		for i := range c.Agents {
 			if c.Agents[i].Enabled {
 				return &c.Agents[i], nil
@@ -230,10 +204,8 @@ func (c *Config) GetDefaultAgent() (*AgentProfile, error) {
 		}
 		return nil, fmt.Errorf("no enabled agents found")
 	}
-
 	return c.GetAgentByName(c.Global.DefaultAgent)
 }
-
 
 func (c *Config) ListEnabledAgents() []AgentProfile {
 	var enabled []AgentProfile
@@ -245,17 +217,13 @@ func (c *Config) ListEnabledAgents() []AgentProfile {
 	return enabled
 }
 
-
 func (c *Config) AddAgent(agent AgentProfile) error {
-	
 	if _, err := c.GetAgentByName(agent.Name); err == nil {
 		return fmt.Errorf("agent profile already exists: %s", agent.Name)
 	}
-
 	c.Agents = append(c.Agents, agent)
 	return nil
 }
-
 
 func (c *Config) RemoveAgent(name string) error {
 	for i, agent := range c.Agents {
@@ -266,7 +234,6 @@ func (c *Config) RemoveAgent(name string) error {
 	}
 	return fmt.Errorf("agent profile not found: %s", name)
 }
-
 
 func (c *Config) SetDefaultAgent(name string) error {
 	if _, err := c.GetAgentByName(name); err != nil {

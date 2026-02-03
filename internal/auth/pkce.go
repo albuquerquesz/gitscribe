@@ -7,25 +7,20 @@ import (
 	"fmt"
 )
 
-
 type PKCE struct {
 	Verifier        string
 	Challenge       string
 	ChallengeMethod string
 }
 
-
 func GeneratePKCE() (*PKCE, error) {
-	
 	verifierBytes := make([]byte, 32)
 	if _, err := rand.Read(verifierBytes); err != nil {
 		return nil, fmt.Errorf("failed to generate code verifier: %w", err)
 	}
 
-	
 	verifier := base64.RawURLEncoding.EncodeToString(verifierBytes)
 
-	
 	hash := sha256.Sum256([]byte(verifier))
 	challenge := base64.RawURLEncoding.EncodeToString(hash[:])
 
@@ -36,7 +31,6 @@ func GeneratePKCE() (*PKCE, error) {
 	}, nil
 }
 
-
 func GenerateState() (string, error) {
 	stateBytes := make([]byte, 32)
 	if _, err := rand.Read(stateBytes); err != nil {
@@ -45,12 +39,6 @@ func GenerateState() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(stateBytes), nil
 }
 
-
 func (p *PKCE) ClearVerifier() {
-	
-	
-	for i := range p.Verifier {
-		p.Verifier = p.Verifier[:i] + "0" + p.Verifier[i+1:]
-	}
 	p.Verifier = ""
 }

@@ -8,13 +8,11 @@ import (
 	"time"
 )
 
-
 type BrowserOpener struct {
 	command  string
 	args     []string
 	fallback func(url string) error
 }
-
 
 func NewBrowserOpener() *BrowserOpener {
 	switch runtime.GOOS {
@@ -30,8 +28,7 @@ func NewBrowserOpener() *BrowserOpener {
 			args:     []string{"/c", "start"},
 			fallback: printManualURL,
 		}
-	default: 
-		
+	default:
 		return &BrowserOpener{
 			command:  "xdg-open",
 			args:     []string{},
@@ -40,9 +37,7 @@ func NewBrowserOpener() *BrowserOpener {
 	}
 }
 
-
 func (bo *BrowserOpener) Open(url string) error {
-	
 	if os.Getenv("DISPLAY") == "" && runtime.GOOS == "linux" {
 		return bo.fallback(url)
 	}
@@ -52,7 +47,6 @@ func (bo *BrowserOpener) Open(url string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	
 	done := make(chan error, 1)
 	go func() {
 		done <- cmd.Run()
@@ -65,11 +59,9 @@ func (bo *BrowserOpener) Open(url string) error {
 		}
 		return nil
 	case <-time.After(5 * time.Second):
-		
 		return bo.fallback(url)
 	}
 }
-
 
 func printManualURL(url string) error {
 	fmt.Println("\n┌─────────────────────────────────────────────────────────────┐")
@@ -80,15 +72,12 @@ func printManualURL(url string) error {
 	return nil
 }
 
-
 func tryLinuxFallback(url string) error {
-	
 	cmd := exec.Command("sensible-browser", url)
 	if err := cmd.Start(); err == nil {
 		return nil
 	}
 
-	
 	if browser := os.Getenv("BROWSER"); browser != "" {
 		cmd := exec.Command(browser, url)
 		if err := cmd.Start(); err == nil {
@@ -96,10 +85,8 @@ func tryLinuxFallback(url string) error {
 		}
 	}
 
-	
 	return printManualURL(url)
 }
-
 
 func CanOpenBrowser() bool {
 	switch runtime.GOOS {
@@ -108,7 +95,6 @@ func CanOpenBrowser() bool {
 	case "windows":
 		return true
 	default:
-		
 		if os.Getenv("DISPLAY") != "" || os.Getenv("WAYLAND_DISPLAY") != "" {
 			return true
 		}
