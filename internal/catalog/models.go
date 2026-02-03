@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-
 type Capability string
 
 const (
@@ -20,7 +19,6 @@ const (
 	CapabilityJSON         Capability = "json_mode"
 )
 
-
 type PricingTier string
 
 const (
@@ -30,7 +28,6 @@ const (
 	PricingPremium    PricingTier = "premium"
 	PricingEnterprise PricingTier = "enterprise"
 )
-
 
 type ModelStatus string
 
@@ -42,15 +39,14 @@ const (
 	ModelStatusRemoved   ModelStatus = "removed"
 )
 
-
 type Model struct {
 	ID              string       `json:"id" yaml:"id"`
 	Provider        string       `json:"provider" yaml:"provider"`
 	Name            string       `json:"name" yaml:"name"`
 	Description     string       `json:"description,omitempty" yaml:"description,omitempty"`
 	MaxTokens       int          `json:"max_tokens" yaml:"max_tokens"`
-	InputPrice      float64      `json:"input_price_per_1m" yaml:"input_price_per_1m"`   
-	OutputPrice     float64      `json:"output_price_per_1m" yaml:"output_price_per_1m"` 
+	InputPrice      float64      `json:"input_price_per_1m" yaml:"input_price_per_1m"`
+	OutputPrice     float64      `json:"output_price_per_1m" yaml:"output_price_per_1m"`
 	PricingTier     PricingTier  `json:"pricing_tier" yaml:"pricing_tier"`
 	Capabilities    []Capability `json:"capabilities" yaml:"capabilities"`
 	Status          ModelStatus  `json:"status" yaml:"status"`
@@ -60,9 +56,8 @@ type Model struct {
 	SupportsToolUse bool         `json:"supports_tool_use" yaml:"supports_tool_use"`
 	RecommendedFor  []string     `json:"recommended_for,omitempty" yaml:"recommended_for,omitempty"`
 	Aliases         []string     `json:"aliases,omitempty" yaml:"aliases,omitempty"`
-	CreatedAt       int64        `json:"created_at,omitempty" yaml:"created_at,omitempty"` 
+	CreatedAt       int64        `json:"created_at,omitempty" yaml:"created_at,omitempty"`
 }
-
 
 type ProviderConfig struct {
 	Name           string            `json:"name" yaml:"name"`
@@ -70,11 +65,10 @@ type ProviderConfig struct {
 	AuthMethod     AuthMethod        `json:"auth_method" yaml:"auth_method"`
 	DefaultHeaders map[string]string `json:"default_headers,omitempty" yaml:"default_headers,omitempty"`
 	ModelsEndpoint string            `json:"models_endpoint,omitempty" yaml:"models_endpoint,omitempty"`
-	SupportsList   bool              `json:"supports_list" yaml:"supports_list"` 
+	SupportsList   bool              `json:"supports_list" yaml:"supports_list"`
 	RequiresAuth   bool              `json:"requires_auth" yaml:"requires_auth"`
 	RateLimitRPS   int               `json:"rate_limit_rps,omitempty" yaml:"rate_limit_rps,omitempty"`
 }
-
 
 type AuthMethod string
 
@@ -86,13 +80,11 @@ const (
 	AuthMethodCustom AuthMethod = "custom"
 )
 
-
 type ProviderModels struct {
 	Provider ProviderConfig `json:"provider" yaml:"provider"`
 	Models   []Model        `json:"models" yaml:"models"`
 	Updated  time.Time      `json:"updated" yaml:"updated"`
 }
-
 
 type CatalogMetadata struct {
 	Version     string    `json:"version" yaml:"version"`
@@ -101,12 +93,10 @@ type CatalogMetadata struct {
 	LastUpdated time.Time `json:"last_updated" yaml:"last_updated"`
 }
 
-
 type ModelCatalog struct {
 	Metadata  CatalogMetadata  `json:"metadata" yaml:"metadata"`
 	Providers []ProviderModels `json:"providers" yaml:"providers"`
 }
-
 
 type FilterOptions struct {
 	Provider       string
@@ -118,14 +108,12 @@ type FilterOptions struct {
 	SupportsVision bool
 }
 
-
 func (c *ModelCatalog) GetModelByID(id string) (*Model, error) {
 	for _, pm := range c.Providers {
 		for i := range pm.Models {
 			if pm.Models[i].ID == id {
 				return &pm.Models[i], nil
 			}
-			
 			for _, alias := range pm.Models[i].Aliases {
 				if alias == id {
 					return &pm.Models[i], nil
@@ -136,7 +124,6 @@ func (c *ModelCatalog) GetModelByID(id string) (*Model, error) {
 	return nil, fmt.Errorf("model not found: %s", id)
 }
 
-
 func (c *ModelCatalog) GetModelsByProvider(provider string) []Model {
 	for _, pm := range c.Providers {
 		if pm.Provider.Name == provider {
@@ -146,15 +133,12 @@ func (c *ModelCatalog) GetModelsByProvider(provider string) []Model {
 	return nil
 }
 
-
 func (c *ModelCatalog) Filter(opts FilterOptions) []Model {
 	var results []Model
-
 	for _, pm := range c.Providers {
 		if opts.Provider != "" && pm.Provider.Name != opts.Provider {
 			continue
 		}
-
 		for _, model := range pm.Models {
 			if !c.matchesFilter(model, opts) {
 				continue
@@ -162,7 +146,6 @@ func (c *ModelCatalog) Filter(opts FilterOptions) []Model {
 			results = append(results, model)
 		}
 	}
-
 	return results
 }
 
@@ -197,17 +180,14 @@ func hasCapability(caps []Capability, target Capability) bool {
 	return false
 }
 
-
 func (m Model) String() string {
 	return fmt.Sprintf("%s (%s) - %s - %d tokens - $%.2f/1M in",
 		m.Name, m.ID, m.PricingTier, m.ContextWindow, m.InputPrice)
 }
 
-
 func (m Model) JSON() ([]byte, error) {
 	return json.MarshalIndent(m, "", "  ")
 }
-
 
 func (m Model) IsAvailable() bool {
 	return m.Status == ModelStatusAvailable || m.Status == ModelStatusPreview || m.Status == ModelStatusBeta

@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-
 type CallbackServer struct {
 	port       int
 	server     *http.Server
@@ -18,16 +17,13 @@ type CallbackServer struct {
 	stateMu    sync.RWMutex
 }
 
-
 type CallbackResult struct {
 	Code  string
 	State string
 	Error string
 }
 
-
 func NewCallbackServer(preferredPort int) (*CallbackServer, int, error) {
-	
 	ports := append([]int{preferredPort}, AlternativePorts...)
 
 	var listener net.Listener
@@ -61,16 +57,14 @@ func NewCallbackServer(preferredPort int) (*CallbackServer, int, error) {
 		resultChan: resultChan,
 	}
 
-	
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", cs.handleCallback)
+	mux.HandleFunc("/auth/callback", cs.handleCallback)
 	mux.HandleFunc("/health", cs.handleHealth)
 	server.Handler = mux
 
-	
 	go func() {
 		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
-			
 			fmt.Printf("Callback server error: %v\n", err)
 		}
 	}()
@@ -78,20 +72,17 @@ func NewCallbackServer(preferredPort int) (*CallbackServer, int, error) {
 	return cs, selectedPort, nil
 }
 
-
 func (cs *CallbackServer) SetState(state string) {
 	cs.stateMu.Lock()
 	defer cs.stateMu.Unlock()
 	cs.state = state
 }
 
-
 func (cs *CallbackServer) GetState() string {
 	cs.stateMu.RLock()
 	defer cs.stateMu.RUnlock()
 	return cs.state
 }
-
 
 func (cs *CallbackServer) handleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
@@ -106,7 +97,6 @@ func (cs *CallbackServer) handleCallback(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	
 	expectedState := cs.GetState()
 	if state == "" || state != expectedState {
 		cs.resultChan <- &CallbackResult{
@@ -121,18 +111,15 @@ func (cs *CallbackServer) handleCallback(w http.ResponseWriter, r *http.Request)
 		State: state,
 	}
 
-	
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(successHTML))
 }
 
-
 func (cs *CallbackServer) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status":"healthy"}`))
 }
-
 
 func (cs *CallbackServer) WaitForCallback(ctx context.Context) (*CallbackResult, error) {
 	select {
@@ -143,11 +130,9 @@ func (cs *CallbackServer) WaitForCallback(ctx context.Context) (*CallbackResult,
 	}
 }
 
-
 func (cs *CallbackServer) Stop(ctx context.Context) error {
 	return cs.server.Shutdown(ctx)
 }
-
 
 const successHTML = `<!DOCTYPE html>
 <html>

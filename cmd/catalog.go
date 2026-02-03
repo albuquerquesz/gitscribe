@@ -198,10 +198,10 @@ func runModelsInteractive() error {
 		return nil
 	}
 
-	return handleModelSelection(*selected, manager)
+	return handleModelSelection(*selected)
 }
 
-func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) error {
+func handleModelSelection(m catalog.Model) error {
 	apiKey, err := auth.LoadAPIKey(m.Provider)
 	isAuthenticated := err == nil && apiKey != ""
 
@@ -406,3 +406,4 @@ func formatDuration(d time.Duration) string {
 	secs := int(d.Seconds())
 	return fmt.Sprintf("%ds", secs)
 }
+

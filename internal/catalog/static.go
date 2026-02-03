@@ -1,7 +1,5 @@
 package catalog
 
-
-
 var StaticModels = map[string][]Model{
 	"anthropic": {
 		{
@@ -276,118 +274,22 @@ var StaticModels = map[string][]Model{
 			RecommendedFor:  []string{"fast", "simple"},
 		},
 	},
-	"openrouter": {
+	"opencode": {
 		{
-			ID:              "anthropic/claude-3.5-sonnet",
-			Provider:        "openrouter",
-			Name:            "Claude 3.5 Sonnet (via OpenRouter)",
-			Description:     "Claude 3.5 Sonnet through OpenRouter",
-			MaxTokens:       8192,
-			ContextWindow:   200000,
-			InputPrice:      3.0,
-			OutputPrice:     15.0,
-			PricingTier:     PricingStandard,
-			Capabilities:    []Capability{CapabilityChat, CapabilityVision, CapabilityCode},
-			Status:          ModelStatusAvailable,
-			SupportsVision:  true,
-			SupportsToolUse: true,
-			Aliases:         []string{"claude-sonnet-or"},
-		},
-		{
-			ID:              "openai/gpt-4o",
-			Provider:        "openrouter",
-			Name:            "GPT-4o (via OpenRouter)",
-			Description:     "GPT-4o through OpenRouter",
-			MaxTokens:       4096,
-			ContextWindow:   128000,
-			InputPrice:      5.0,
-			OutputPrice:     15.0,
-			PricingTier:     PricingStandard,
-			Capabilities:    []Capability{CapabilityChat, CapabilityVision, CapabilityCode},
-			Status:          ModelStatusAvailable,
-			SupportsVision:  true,
-			SupportsToolUse: true,
-			Aliases:         []string{"gpt-4o-or"},
-		},
-		{
-			ID:              "mistralai/mixtral-8x22b-instruct",
-			Provider:        "openrouter",
-			Name:            "Mixtral 8x22B",
-			Description:     "Mixtral 8x22B through OpenRouter",
-			MaxTokens:       65536,
-			ContextWindow:   65536,
-			InputPrice:      0.65,
-			OutputPrice:     0.65,
-			PricingTier:     PricingStandard,
-			Capabilities:    []Capability{CapabilityChat, CapabilityCode},
-			Status:          ModelStatusAvailable,
-			SupportsVision:  false,
-			SupportsToolUse: false,
-			RecommendedFor:  []string{"long-context", "coding"},
-			Aliases:         []string{"mixtral-8x22b-or"},
-		},
-		{
-			ID:              "google/gemini-pro-1.5",
-			Provider:        "openrouter",
-			Name:            "Gemini Pro 1.5",
-			Description:     "Google's Gemini Pro 1.5",
-			MaxTokens:       8192,
-			ContextWindow:   2000000,
-			InputPrice:      1.25,
-			OutputPrice:     5.0,
-			PricingTier:     PricingStandard,
-			Capabilities:    []Capability{CapabilityChat, CapabilityVision, CapabilityCode},
-			Status:          ModelStatusAvailable,
-			SupportsVision:  true,
-			SupportsToolUse: true,
-			RecommendedFor:  []string{"long-context", "vision"},
-		},
-		{
-			ID:              "meta-llama/llama-3.1-405b-instruct",
-			Provider:        "openrouter",
-			Name:            "Llama 3.1 405B",
-			Description:     "Meta's largest Llama model",
+			ID:              "zed",
+			Provider:        "opencode",
+			Name:            "OpenCode Zed",
+			Description:     "High-performance coding model",
 			MaxTokens:       8192,
 			ContextWindow:   128000,
-			InputPrice:      2.0,
-			OutputPrice:     2.0,
+			InputPrice:      0.0,
+			OutputPrice:     0.0,
 			PricingTier:     PricingStandard,
-			Capabilities:    []Capability{CapabilityChat, CapabilityCode},
+			Capabilities:    []Capability{CapabilityChat, CapabilityCode, CapabilityReasoning},
 			Status:          ModelStatusAvailable,
 			SupportsVision:  false,
-			SupportsToolUse: false,
-			RecommendedFor:  []string{"general", "coding", "powerful"},
-		},
-		{
-			ID:              "deepseek/deepseek-chat",
-			Provider:        "openrouter",
-			Name:            "DeepSeek Chat",
-			Description:     "DeepSeek's general purpose chat model",
-			MaxTokens:       4096,
-			ContextWindow:   32768,
-			InputPrice:      0.14,
-			OutputPrice:     0.28,
-			PricingTier:     PricingBudget,
-			Capabilities:    []Capability{CapabilityChat, CapabilityCode},
-			Status:          ModelStatusAvailable,
-			SupportsVision:  false,
-			SupportsToolUse: false,
-		},
-		{
-			ID:              "perplexity/sonar",
-			Provider:        "openrouter",
-			Name:            "Perplexity Sonar",
-			Description:     "Perplexity's conversational search model",
-			MaxTokens:       4096,
-			ContextWindow:   128000,
-			InputPrice:      1.0,
-			OutputPrice:     1.0,
-			PricingTier:     PricingStandard,
-			Capabilities:    []Capability{CapabilityChat},
-			Status:          ModelStatusAvailable,
-			SupportsVision:  false,
-			SupportsToolUse: false,
-			RecommendedFor:  []string{"search", "research"},
+			SupportsToolUse: true,
+			RecommendedFor:  []string{"coding", "development"},
 		},
 	},
 	"ollama": {
@@ -496,7 +398,6 @@ var StaticModels = map[string][]Model{
 	},
 }
 
-
 func GetStaticModels(provider string) []Model {
 	if models, ok := StaticModels[provider]; ok {
 		return models
@@ -504,14 +405,13 @@ func GetStaticModels(provider string) []Model {
 	return nil
 }
 
-
 var ProviderConfigs = map[string]ProviderConfig{
 	"anthropic": {
 		Name:           "anthropic",
 		BaseURL:        "https://api.anthropic.com/v1",
 		AuthMethod:     AuthMethodAPIKey,
 		ModelsEndpoint: "/models",
-		SupportsList:   false, 
+		SupportsList:   false,
 		RequiresAuth:   true,
 		RateLimitRPS:   50,
 		DefaultHeaders: map[string]string{
@@ -536,14 +436,14 @@ var ProviderConfigs = map[string]ProviderConfig{
 		RequiresAuth:   true,
 		RateLimitRPS:   30,
 	},
-	"openrouter": {
-		Name:           "openrouter",
-		BaseURL:        "https://openrouter.ai/api/v1",
-		AuthMethod:     AuthMethodBearer,
+	"opencode": {
+		Name:           "opencode",
+		BaseURL:        "https://api.opencode.com/v1",
+		AuthMethod:     AuthMethodAPIKey,
 		ModelsEndpoint: "/models",
-		SupportsList:   true,
+		SupportsList:   false,
 		RequiresAuth:   true,
-		RateLimitRPS:   20,
+		RateLimitRPS:   10,
 	},
 	"ollama": {
 		Name:           "ollama",
@@ -552,16 +452,14 @@ var ProviderConfigs = map[string]ProviderConfig{
 		ModelsEndpoint: "/models",
 		SupportsList:   true,
 		RequiresAuth:   false,
-		RateLimitRPS:   0, 
+		RateLimitRPS:   0,
 	},
 }
-
 
 func GetProviderConfig(name string) (ProviderConfig, bool) {
 	config, ok := ProviderConfigs[name]
 	return config, ok
 }
-
 
 func GetAllProviderConfigs() []ProviderConfig {
 	configs := make([]ProviderConfig, 0, len(ProviderConfigs))

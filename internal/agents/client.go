@@ -10,7 +10,6 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
-
 type Client interface {
 	SendMessage(ctx context.Context, messages []Message, options RequestOptions) (*Response, error)
 	GetProvider() config.AgentProvider
@@ -19,12 +18,10 @@ type Client interface {
 	Close() error
 }
 
-
 type Message struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
-
 
 type RequestOptions struct {
 	Temperature float32
@@ -33,7 +30,6 @@ type RequestOptions struct {
 	Stream      bool
 }
 
-
 type Response struct {
 	Content      string
 	Usage        Usage
@@ -41,13 +37,11 @@ type Response struct {
 	Model        string
 }
 
-
 type Usage struct {
 	PromptTokens     int
 	CompletionTokens int
 	TotalTokens      int
 }
-
 
 type OpenAIClient struct {
 	client   *openai.Client
@@ -56,7 +50,6 @@ type OpenAIClient struct {
 	provider config.AgentProvider
 }
 
-
 func NewOpenAIClient(profile config.AgentProfile, apiKey string) (*OpenAIClient, error) {
 	if apiKey == "" {
 		return nil, fmt.Errorf("API key is required for agent: %s", profile.Name)
@@ -64,12 +57,10 @@ func NewOpenAIClient(profile config.AgentProfile, apiKey string) (*OpenAIClient,
 
 	cfg := openai.DefaultConfig(apiKey)
 
-	
 	if profile.BaseURL != "" {
 		cfg.BaseURL = profile.BaseURL
 	}
 
-	
 	switch profile.Provider {
 	case config.ProviderGroq:
 		if cfg.BaseURL == "" {
@@ -95,9 +86,7 @@ func NewOpenAIClient(profile config.AgentProfile, apiKey string) (*OpenAIClient,
 	}, nil
 }
 
-
 func (c *OpenAIClient) SendMessage(ctx context.Context, messages []Message, options RequestOptions) (*Response, error) {
-	
 	if options.Timeout == 0 {
 		options.Timeout = time.Duration(c.profile.Timeout) * time.Second
 	}
@@ -105,11 +94,9 @@ func (c *OpenAIClient) SendMessage(ctx context.Context, messages []Message, opti
 		options.Timeout = 30 * time.Second
 	}
 
-	
 	ctx, cancel := context.WithTimeout(ctx, options.Timeout)
 	defer cancel()
 
-	
 	openaiMessages := make([]openai.ChatCompletionMessage, len(messages))
 	for i, msg := range messages {
 		openaiMessages[i] = openai.ChatCompletionMessage{
@@ -118,7 +105,6 @@ func (c *OpenAIClient) SendMessage(ctx context.Context, messages []Message, opti
 		}
 	}
 
-	
 	if c.profile.SystemPrompt != "" && len(openaiMessages) > 0 && openaiMessages[0].Role != "system" {
 		openaiMessages = append([]openai.ChatCompletionMessage{
 			{
@@ -128,7 +114,6 @@ func (c *OpenAIClient) SendMessage(ctx context.Context, messages []Message, opti
 		}, openaiMessages...)
 	}
 
-	
 	temperature := options.Temperature
 	if temperature == 0 && c.profile.Temperature != 0 {
 		temperature = c.profile.Temperature
@@ -170,33 +155,26 @@ func (c *OpenAIClient) SendMessage(ctx context.Context, messages []Message, opti
 	}, nil
 }
 
-
 func (c *OpenAIClient) GetProvider() config.AgentProvider {
 	return c.provider
 }
-
 
 func (c *OpenAIClient) GetModel() string {
 	return c.profile.Model
 }
 
-
 func (c *OpenAIClient) IsAvailable() bool {
 	return c.client != nil && c.apiKey != ""
 }
 
-
 func (c *OpenAIClient) Close() error {
-	
 	secrets.SecureWipe(&c.apiKey)
 	return nil
 }
 
-
 type Factory struct {
 	secretsManager *secrets.AgentKeyManager
 }
-
 
 func NewFactory() *Factory {
 	return &Factory{
@@ -204,12 +182,9 @@ func NewFactory() *Factory {
 	}
 }
 
-
 func (f *Factory) CreateClient(profile config.AgentProfile) (Client, error) {
-	
 	apiKey, err := f.secretsManager.RetrieveAgentKey(profile.Name)
 	if err != nil {
-		
 		apiKey, err = f.secretsManager.Retrieve(profile.KeyringKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to retrieve API key for agent %s: %w", profile.Name, err)
@@ -219,24 +194,21 @@ func (f *Factory) CreateClient(profile config.AgentProfile) (Client, error) {
 	switch profile.Provider {
 	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama:
 		return NewOpenAIClient(profile, apiKey)
-
-	
-	
-	
-	
-	
-
+	case config.ProviderClaude:
+		return NewAnthropicClient(profile, apiKey)
 	default:
 		return nil, fmt.Errorf("unsupported provider: %s", profile.Provider)
 	}
 }
-
 
 func (f *Factory) CreateClientWithKey(profile config.AgentProfile, apiKey string) (Client, error) {
 	switch profile.Provider {
 	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama:
 		return NewOpenAIClient(profile, apiKey)
+	case config.ProviderClaude:
+		return NewAnthropicClient(profile, apiKey)
 	default:
 		return nil, fmt.Errorf("unsupported provider: %s", profile.Provider)
 	}
 }
+

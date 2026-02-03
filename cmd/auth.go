@@ -127,6 +127,9 @@ func runAuth() error {
 		provider = providers.NewAnthropicProvider()
 	case "openai":
 		provider = providers.NewOpenAIProvider()
+		if authPort == 8085 {
+			authPort = 1455
+		}
 	default:
 		return fmt.Errorf("unsupported provider: %s", authProvider)
 	}

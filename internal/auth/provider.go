@@ -1,4 +1,3 @@
-
 package auth
 
 import (
@@ -7,33 +6,24 @@ import (
 	"time"
 )
 
-
 type Provider interface {
-	
 	Name() string
-
-	
 	AuthorizationEndpoint() string
-
-	
 	TokenEndpoint() string
-
-	
 	Scopes() []string
-
-	
 	ClientID() string
-
-	
 	SupportsPKCE() bool
-
-	
 	APIKeyEndpoint() string
-
-	
 	GenerateAPIKey(ctx context.Context, accessToken string) (string, error)
 }
 
+type ExtraParamsProvider interface {
+	ExtraParams() map[string]string
+}
+
+type CallbackPathProvider interface {
+	CallbackPath() string
+}
 
 type TokenResponse struct {
 	AccessToken  string    `json:"access_token"`
@@ -44,7 +34,6 @@ type TokenResponse struct {
 	ExpiresAt    time.Time `json:"-"`
 }
 
-
 type FlowConfig struct {
 	Provider     Provider
 	RedirectURL  string
@@ -53,7 +42,6 @@ type FlowConfig struct {
 	StateTimeout time.Duration
 	OpenBrowser  bool
 }
-
 
 func DefaultFlowConfig(provider Provider) *FlowConfig {
 	return &FlowConfig{
@@ -66,12 +54,9 @@ func DefaultFlowConfig(provider Provider) *FlowConfig {
 	}
 }
 
-
 const DefaultPort = 8085
 
-
 var AlternativePorts = []int{8086, 8087, 8088, 8089, 8090}
-
 
 var (
 	ErrTimeout          = fmt.Errorf("authentication timeout")
