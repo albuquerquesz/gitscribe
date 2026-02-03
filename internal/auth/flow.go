@@ -9,36 +9,36 @@ import (
 	"github.com/zalando/go-keyring"
 )
 
-// Flow handles the complete OAuth2 PKCE flow
+
 type Flow struct {
 	config *FlowConfig
 }
 
-// NewFlow creates a new OAuth flow
+
 func NewFlow(config *FlowConfig) *Flow {
 	return &Flow{
 		config: config,
 	}
 }
 
-// Run executes the complete OAuth2 PKCE flow
+
 func (f *Flow) Run(ctx context.Context) (*TokenResponse, string, error) {
 	provider := f.config.Provider
 
-	// 1. Generate PKCE parameters
+	
 	pkce, err := GeneratePKCE()
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to generate PKCE: %w", err)
 	}
 	defer pkce.ClearVerifier()
 
-	// 2. Generate state parameter
+	
 	state, err := GenerateState()
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to generate state: %w", err)
 	}
 
-	// 3. Start local callback server
+	
 	server, port, err := NewCallbackServer(f.config.Port)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to start callback server: %w", err)
@@ -47,13 +47,13 @@ func (f *Flow) Run(ctx context.Context) (*TokenResponse, string, error) {
 
 	server.SetState(state)
 
-	// Update redirect URL with actual port
+	
 	redirectURL := fmt.Sprintf("http://localhost:%d/callback", port)
 
-	// 4. Build authorization URL
+	
 	authURL := f.buildAuthorizationURL(provider, pkce.Challenge, state, redirectURL)
 
-	// 5. Open browser or display URL
+	
 	if f.config.OpenBrowser && CanOpenBrowser() {
 		browser := NewBrowserOpener()
 		if err := browser.Open(authURL); err != nil {
@@ -63,7 +63,7 @@ func (f *Flow) Run(ctx context.Context) (*TokenResponse, string, error) {
 		fmt.Printf("\nPlease visit this URL to authorize:\n%s\n\n", authURL)
 	}
 
-	// 6. Wait for callback
+	
 	fmt.Println("Waiting for authentication...")
 
 	callbackCtx, cancel := context.WithTimeout(ctx, f.config.Timeout)
@@ -81,7 +81,7 @@ func (f *Flow) Run(ctx context.Context) (*TokenResponse, string, error) {
 		return nil, "", fmt.Errorf("OAuth error: %s", result.Error)
 	}
 
-	// 7. Exchange code for tokens
+	
 	fmt.Println("Exchanging authorization code for tokens...")
 
 	tokenCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
@@ -94,7 +94,7 @@ func (f *Flow) Run(ctx context.Context) (*TokenResponse, string, error) {
 
 	fmt.Printf("✓ Successfully authenticated with %s\n", provider.Name())
 
-	// 8. Generate API key
+	
 	fmt.Println("Generating API key...")
 
 	apiKeyCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
@@ -110,7 +110,7 @@ func (f *Flow) Run(ctx context.Context) (*TokenResponse, string, error) {
 	return tokens, apiKey, nil
 }
 
-// buildAuthorizationURL builds the OAuth2 authorization URL
+
 func (f *Flow) buildAuthorizationURL(provider Provider, codeChallenge, state, redirectURL string) string {
 	params := url.Values{
 		"response_type":         {"code"},
@@ -125,7 +125,7 @@ func (f *Flow) buildAuthorizationURL(provider Provider, codeChallenge, state, re
 	return fmt.Sprintf("%s?%s", provider.AuthorizationEndpoint(), params.Encode())
 }
 
-// buildScopeString joins scopes into a space-separated string
+
 func (f *Flow) buildScopeString(scopes []string) string {
 	result := ""
 	for i, scope := range scopes {
@@ -137,7 +137,7 @@ func (f *Flow) buildScopeString(scopes []string) string {
 	return result
 }
 
-// IsAuthenticated checks if we have valid tokens for a provider
+
 func IsAuthenticated(providerName string) (bool, error) {
 	storage, err := NewTokenStorage()
 	if err != nil {
@@ -155,7 +155,7 @@ func IsAuthenticated(providerName string) (bool, error) {
 	return !token.IsExpired(), nil
 }
 
-// RefreshIfNeeded refreshes the token if it's about to expire
+
 func RefreshIfNeeded(ctx context.Context, provider Provider) (*TokenResponse, error) {
 	storage, err := NewTokenStorage()
 	if err != nil {
@@ -167,9 +167,9 @@ func RefreshIfNeeded(ctx context.Context, provider Provider) (*TokenResponse, er
 		return nil, err
 	}
 
-	// Check if we need to refresh
+	
 	if !token.NeedsRefresh() {
-		// Token is still valid
+		
 		return &TokenResponse{
 			AccessToken:  token.AccessToken,
 			TokenType:    token.TokenType,
@@ -185,13 +185,13 @@ func RefreshIfNeeded(ctx context.Context, provider Provider) (*TokenResponse, er
 
 	fmt.Println("Refreshing access token...")
 
-	// Refresh the token
+	
 	newToken, err := RefreshToken(ctx, provider, token.RefreshToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to refresh token: %w", err)
 	}
 
-	// Save the new token
+	
 	if err := storage.SaveToken(provider.Name(), newToken); err != nil {
 		return nil, fmt.Errorf("failed to save refreshed token: %w", err)
 	}

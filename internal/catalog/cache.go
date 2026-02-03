@@ -9,24 +9,24 @@ import (
 )
 
 const (
-	// DefaultCacheDuration is how long to use cached data before refreshing
+	
 	DefaultCacheDuration = 24 * time.Hour
 
-	// CacheFileName is the name of the cache file
+	
 	CacheFileName = "model-catalog-cache.json"
 
-	// MinRefreshInterval is the minimum time between refresh attempts
+	
 	MinRefreshInterval = 1 * time.Hour
 )
 
-// Cache stores the model catalog with metadata
+
 type Cache struct {
 	Catalog   ModelCatalog         `json:"catalog"`
-	FetchedAt map[string]time.Time `json:"fetched_at"` // per provider
+	FetchedAt map[string]time.Time `json:"fetched_at"` 
 	Version   string               `json:"version"`
 }
 
-// CacheManager handles caching operations
+
 type CacheManager struct {
 	cacheDir           string
 	cacheFile          string
@@ -34,14 +34,14 @@ type CacheManager struct {
 	minRefreshInterval time.Duration
 }
 
-// CacheOptions configures the cache manager
+
 type CacheOptions struct {
 	CacheDir           string
 	CacheDuration      time.Duration
 	MinRefreshInterval time.Duration
 }
 
-// NewCacheManager creates a new cache manager
+
 func NewCacheManager(opts CacheOptions) (*CacheManager, error) {
 	if opts.CacheDir == "" {
 		home, err := os.UserHomeDir()
@@ -59,7 +59,7 @@ func NewCacheManager(opts CacheOptions) (*CacheManager, error) {
 		opts.MinRefreshInterval = MinRefreshInterval
 	}
 
-	// Ensure cache directory exists
+	
 	if err := os.MkdirAll(opts.CacheDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create cache directory: %w", err)
 	}
@@ -72,12 +72,12 @@ func NewCacheManager(opts CacheOptions) (*CacheManager, error) {
 	}, nil
 }
 
-// Load reads the cache from disk
+
 func (cm *CacheManager) Load() (*Cache, error) {
 	data, err := os.ReadFile(cm.cacheFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			// Return empty cache
+			
 			return &Cache{
 				Catalog: ModelCatalog{
 					Metadata: CatalogMetadata{
@@ -105,14 +105,14 @@ func (cm *CacheManager) Load() (*Cache, error) {
 	return &cache, nil
 }
 
-// Save writes the cache to disk
+
 func (cm *CacheManager) Save(cache *Cache) error {
 	data, err := json.MarshalIndent(cache, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal cache: %w", err)
 	}
 
-	// Write with restricted permissions
+	
 	if err := os.WriteFile(cm.cacheFile, data, 0600); err != nil {
 		return fmt.Errorf("failed to write cache file: %w", err)
 	}
@@ -120,7 +120,7 @@ func (cm *CacheManager) Save(cache *Cache) error {
 	return nil
 }
 
-// IsStale checks if a provider's cache entry is stale
+
 func (cm *CacheManager) IsStale(cache *Cache, provider string) bool {
 	fetchedAt, ok := cache.FetchedAt[provider]
 	if !ok {
@@ -130,7 +130,7 @@ func (cm *CacheManager) IsStale(cache *Cache, provider string) bool {
 	return time.Since(fetchedAt) > cm.cacheDuration
 }
 
-// CanRefresh checks if enough time has passed to attempt a refresh
+
 func (cm *CacheManager) CanRefresh(cache *Cache, provider string) bool {
 	fetchedAt, ok := cache.FetchedAt[provider]
 	if !ok {
@@ -140,9 +140,9 @@ func (cm *CacheManager) CanRefresh(cache *Cache, provider string) bool {
 	return time.Since(fetchedAt) > cm.minRefreshInterval
 }
 
-// UpdateProvider updates the cache with new provider models
+
 func (cm *CacheManager) UpdateProvider(cache *Cache, provider string, models []Model) {
-	// Find existing provider entry
+	
 	var found bool
 	for i := range cache.Catalog.Providers {
 		if cache.Catalog.Providers[i].Provider.Name == provider {
@@ -153,7 +153,7 @@ func (cm *CacheManager) UpdateProvider(cache *Cache, provider string, models []M
 		}
 	}
 
-	// Add new provider entry if not found
+	
 	if !found {
 		if config, ok := GetProviderConfig(provider); ok {
 			cache.Catalog.Providers = append(cache.Catalog.Providers, ProviderModels{
@@ -164,14 +164,14 @@ func (cm *CacheManager) UpdateProvider(cache *Cache, provider string, models []M
 		}
 	}
 
-	// Update fetch timestamp
+	
 	cache.FetchedAt[provider] = time.Now()
 
-	// Update catalog metadata
+	
 	cache.Catalog.Metadata.LastUpdated = time.Now()
 }
 
-// Clear removes the entire cache
+
 func (cm *CacheManager) Clear() error {
 	if err := os.Remove(cm.cacheFile); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to clear cache: %w", err)
@@ -179,23 +179,23 @@ func (cm *CacheManager) Clear() error {
 	return nil
 }
 
-// GetCacheAge returns how old the cache is for a specific provider
+
 func (cm *CacheManager) GetCacheAge(cache *Cache, provider string) time.Duration {
 	fetchedAt, ok := cache.FetchedAt[provider]
 	if !ok {
-		return time.Duration(1<<63 - 1) // Max duration
+		return time.Duration(1<<63 - 1) 
 	}
 	return time.Since(fetchedAt)
 }
 
-// WarmCache pre-populates the cache with static models
+
 func (cm *CacheManager) WarmCache() (*Cache, error) {
 	cache, err := cm.Load()
 	if err != nil {
 		return nil, err
 	}
 
-	// Add static models for all providers
+	
 	for providerName := range StaticModels {
 		models := GetStaticModels(providerName)
 		if len(models) > 0 {
@@ -203,7 +203,7 @@ func (cm *CacheManager) WarmCache() (*Cache, error) {
 		}
 	}
 
-	// Save the warmed cache
+	
 	if err := cm.Save(cache); err != nil {
 		return nil, err
 	}

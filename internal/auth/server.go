@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// CallbackServer handles the OAuth2 callback
+
 type CallbackServer struct {
 	port       int
 	server     *http.Server
@@ -18,16 +18,16 @@ type CallbackServer struct {
 	stateMu    sync.RWMutex
 }
 
-// CallbackResult contains the authorization code or error
+
 type CallbackResult struct {
 	Code  string
 	State string
 	Error string
 }
 
-// NewCallbackServer creates a new callback server with an available port
+
 func NewCallbackServer(preferredPort int) (*CallbackServer, int, error) {
-	// Try preferred port first, then fallbacks
+	
 	ports := append([]int{preferredPort}, AlternativePorts...)
 
 	var listener net.Listener
@@ -61,16 +61,16 @@ func NewCallbackServer(preferredPort int) (*CallbackServer, int, error) {
 		resultChan: resultChan,
 	}
 
-	// Setup handler
+	
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", cs.handleCallback)
 	mux.HandleFunc("/health", cs.handleHealth)
 	server.Handler = mux
 
-	// Start server in background
+	
 	go func() {
 		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
-			// Log error but don't crash
+			
 			fmt.Printf("Callback server error: %v\n", err)
 		}
 	}()
@@ -78,21 +78,21 @@ func NewCallbackServer(preferredPort int) (*CallbackServer, int, error) {
 	return cs, selectedPort, nil
 }
 
-// SetState sets the expected state parameter
+
 func (cs *CallbackServer) SetState(state string) {
 	cs.stateMu.Lock()
 	defer cs.stateMu.Unlock()
 	cs.state = state
 }
 
-// GetState returns the expected state parameter
+
 func (cs *CallbackServer) GetState() string {
 	cs.stateMu.RLock()
 	defer cs.stateMu.RUnlock()
 	return cs.state
 }
 
-// handleCallback handles the OAuth2 callback
+
 func (cs *CallbackServer) handleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
@@ -106,7 +106,7 @@ func (cs *CallbackServer) handleCallback(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Validate state
+	
 	expectedState := cs.GetState()
 	if state == "" || state != expectedState {
 		cs.resultChan <- &CallbackResult{
@@ -121,19 +121,19 @@ func (cs *CallbackServer) handleCallback(w http.ResponseWriter, r *http.Request)
 		State: state,
 	}
 
-	// Return a nice success page
+	
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(successHTML))
 }
 
-// handleHealth provides a health check endpoint
+
 func (cs *CallbackServer) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status":"healthy"}`))
 }
 
-// WaitForCallback blocks until a callback is received or context is cancelled
+
 func (cs *CallbackServer) WaitForCallback(ctx context.Context) (*CallbackResult, error) {
 	select {
 	case result := <-cs.resultChan:
@@ -143,12 +143,12 @@ func (cs *CallbackServer) WaitForCallback(ctx context.Context) (*CallbackResult,
 	}
 }
 
-// Stop shuts down the callback server
+
 func (cs *CallbackServer) Stop(ctx context.Context) error {
 	return cs.server.Shutdown(ctx)
 }
 
-// successHTML is the HTML shown after successful authentication
+
 const successHTML = `<!DOCTYPE html>
 <html>
 <head>

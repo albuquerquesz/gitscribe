@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// agentCmd manages agent profiles and API keys
+
 var agentCmd = &cobra.Command{
 	Use:   "agent",
 	Short: "Manage AI agents and their API keys",
@@ -18,26 +18,26 @@ var agentCmd = &cobra.Command{
 }
 
 var (
-	// Flags for agent add
+	
 	newAgentName     string
 	newAgentProvider string
 	newAgentModel    string
 	newAgentKey      string
 	newAgentBaseURL  string
 
-	// Flags for agent set-default
+	
 	defaultAgentName string
 )
 
 func init() {
-	// Add subcommands
+	
 	agentCmd.AddCommand(agentAddCmd)
 	agentCmd.AddCommand(agentRemoveCmd)
 	agentCmd.AddCommand(agentSetDefaultCmd)
 	agentCmd.AddCommand(agentSetKeyCmd)
 	agentCmd.AddCommand(agentListCmd)
 
-	// Add flags
+	
 	agentAddCmd.Flags().StringVarP(&newAgentName, "name", "n", "", "Agent profile name (required)")
 	agentAddCmd.Flags().StringVarP(&newAgentProvider, "provider", "p", "", "Provider: openai, groq, claude, gemini, ollama (required)")
 	agentAddCmd.Flags().StringVarP(&newAgentModel, "model", "m", "", "Model name (required)")
@@ -103,7 +103,7 @@ func addAgent() error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Validate provider
+	
 	provider := config.AgentProvider(newAgentProvider)
 	validProviders := []config.AgentProvider{
 		config.ProviderOpenAI,
@@ -125,7 +125,7 @@ func addAgent() error {
 		return fmt.Errorf("invalid provider: %s", newAgentProvider)
 	}
 
-	// Prompt for API key if not provided
+	
 	if newAgentKey == "" {
 		prompt := fmt.Sprintf("Enter API key for %s (%s):", newAgentName, provider)
 		key, err := style.Prompt(prompt)
@@ -139,7 +139,7 @@ func addAgent() error {
 		return fmt.Errorf("API key is required")
 	}
 
-	// Create agent profile
+	
 	agent := config.AgentProfile{
 		Name:        newAgentName,
 		Provider:    provider,
@@ -153,20 +153,20 @@ func addAgent() error {
 		KeyringKey:  secrets.NewAgentKeyManager().GetAgentKeyName(newAgentName),
 	}
 
-	// Add to config
+	
 	if err := cfg.AddAgent(agent); err != nil {
 		return err
 	}
 
-	// Save API key to keyring
+	
 	keyMgr := secrets.NewAgentKeyManager()
 	if err := keyMgr.StoreAgentKey(newAgentName, newAgentKey); err != nil {
 		return fmt.Errorf("failed to store API key: %w", err)
 	}
 
-	// Save config
+	
 	if err := cfg.Save(); err != nil {
-		// Cleanup key if config save fails
+		
 		keyMgr.DeleteAgentKey(newAgentName)
 		return fmt.Errorf("failed to save config: %w", err)
 	}
@@ -184,7 +184,7 @@ func removeAgent(name string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Confirm removal
+	
 	confirm, err := style.Prompt(fmt.Sprintf("Are you sure you want to remove agent '%s'? (yes/no): ", name))
 	if err != nil {
 		return err
@@ -195,19 +195,19 @@ func removeAgent(name string) error {
 		return nil
 	}
 
-	// Remove from config
+	
 	if err := cfg.RemoveAgent(name); err != nil {
 		return err
 	}
 
-	// Remove API key from keyring
+	
 	keyMgr := secrets.NewAgentKeyManager()
 	if err := keyMgr.DeleteAgentKey(name); err != nil {
-		// Log but don't fail - key might not exist
+		
 		fmt.Printf("Warning: could not remove API key: %v\n", err)
 	}
 
-	// Save config
+	
 	if err := cfg.Save(); err != nil {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
@@ -240,13 +240,13 @@ func setAgentKey(name string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Verify agent exists
+	
 	agent, err := cfg.GetAgentByName(name)
 	if err != nil {
 		return err
 	}
 
-	// Prompt for new key
+	
 	prompt := fmt.Sprintf("Enter new API key for %s (%s):", name, agent.Provider)
 	newKey, err := style.Prompt(prompt)
 	if err != nil {
@@ -257,7 +257,7 @@ func setAgentKey(name string) error {
 		return fmt.Errorf("API key cannot be empty")
 	}
 
-	// Update key in keyring
+	
 	keyMgr := secrets.NewAgentKeyManager()
 	if err := keyMgr.StoreAgentKey(name, newKey); err != nil {
 		return fmt.Errorf("failed to store API key: %w", err)

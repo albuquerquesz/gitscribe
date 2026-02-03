@@ -13,7 +13,7 @@ const (
 	ConfigFileName = "config.yaml"
 )
 
-// AgentProvider defines supported AI providers
+
 type AgentProvider string
 
 const (
@@ -25,7 +25,7 @@ const (
 	ProviderOpenRouter AgentProvider = "openrouter"
 )
 
-// AgentProfile defines the configuration for a single agent
+
 type AgentProfile struct {
 	Name         string        `yaml:"name" json:"name"`
 	Provider     AgentProvider `yaml:"provider" json:"provider"`
@@ -35,13 +35,13 @@ type AgentProfile struct {
 	MaxTokens    int           `yaml:"max_tokens" json:"max_tokens"`
 	Timeout      int           `yaml:"timeout_seconds" json:"timeout_seconds"`
 	Enabled      bool          `yaml:"enabled" json:"enabled"`
-	Priority     int           `yaml:"priority" json:"priority"` // Lower = higher priority for auto-selection
+	Priority     int           `yaml:"priority" json:"priority"` 
 	SystemPrompt string        `yaml:"system_prompt,omitempty" json:"system_prompt,omitempty"`
-	// APIKey is NOT stored here - it's stored in OS keyring
-	KeyringKey string `yaml:"keyring_key" json:"keyring_key"` // Reference to keyring entry
+	
+	KeyringKey string `yaml:"keyring_key" json:"keyring_key"` 
 }
 
-// RoutingRule defines when to use which agent
+
 type RoutingRule struct {
 	Name         string   `yaml:"name" json:"name"`
 	AgentProfile string   `yaml:"agent_profile" json:"agent_profile"`
@@ -49,7 +49,7 @@ type RoutingRule struct {
 	Priority     int      `yaml:"priority" json:"priority"`
 }
 
-// GlobalConfig contains app-wide settings
+
 type GlobalConfig struct {
 	DefaultAgent   string            `yaml:"default_agent" json:"default_agent"`
 	AutoSelect     bool              `yaml:"auto_select" json:"auto_select"`
@@ -59,7 +59,7 @@ type GlobalConfig struct {
 	CustomHeaders  map[string]string `yaml:"custom_headers,omitempty" json:"custom_headers,omitempty"`
 }
 
-// Config is the root configuration structure
+
 type Config struct {
 	Version string         `yaml:"version" json:"version"`
 	Global  GlobalConfig   `yaml:"global" json:"global"`
@@ -67,7 +67,7 @@ type Config struct {
 	Routing []RoutingRule  `yaml:"routing" json:"routing"`
 }
 
-// DefaultConfig returns a sensible default configuration
+
 func DefaultConfig() *Config {
 	return &Config{
 		Version: "1.0",
@@ -133,7 +133,7 @@ func DefaultConfig() *Config {
 	}
 }
 
-// GetConfigPath returns the path to the config file
+
 func GetConfigPath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -144,7 +144,7 @@ func GetConfigPath() (string, error) {
 	return filepath.Join(configDir, ConfigFileName), nil
 }
 
-// EnsureConfigDir creates the config directory if it doesn't exist
+
 func EnsureConfigDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -159,14 +159,14 @@ func EnsureConfigDir() (string, error) {
 	return configDir, nil
 }
 
-// Load reads the configuration from disk
+
 func Load() (*Config, error) {
 	configPath, err := GetConfigPath()
 	if err != nil {
 		return nil, err
 	}
 
-	// If config doesn't exist, return defaults
+	
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		return DefaultConfig(), nil
 	}
@@ -184,7 +184,7 @@ func Load() (*Config, error) {
 	return &cfg, nil
 }
 
-// Save writes the configuration to disk
+
 func (c *Config) Save() error {
 	_, err := EnsureConfigDir()
 	if err != nil {
@@ -201,7 +201,7 @@ func (c *Config) Save() error {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	// Write with restricted permissions (user only)
+	
 	if err := os.WriteFile(configPath, data, 0600); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
@@ -209,7 +209,7 @@ func (c *Config) Save() error {
 	return nil
 }
 
-// GetAgentByName returns an agent profile by name
+
 func (c *Config) GetAgentByName(name string) (*AgentProfile, error) {
 	for i := range c.Agents {
 		if c.Agents[i].Name == name {
@@ -219,10 +219,10 @@ func (c *Config) GetAgentByName(name string) (*AgentProfile, error) {
 	return nil, fmt.Errorf("agent profile not found: %s", name)
 }
 
-// GetDefaultAgent returns the default agent profile
+
 func (c *Config) GetDefaultAgent() (*AgentProfile, error) {
 	if c.Global.DefaultAgent == "" {
-		// Return first enabled agent
+		
 		for i := range c.Agents {
 			if c.Agents[i].Enabled {
 				return &c.Agents[i], nil
@@ -234,7 +234,7 @@ func (c *Config) GetDefaultAgent() (*AgentProfile, error) {
 	return c.GetAgentByName(c.Global.DefaultAgent)
 }
 
-// ListEnabledAgents returns all enabled agent profiles
+
 func (c *Config) ListEnabledAgents() []AgentProfile {
 	var enabled []AgentProfile
 	for _, agent := range c.Agents {
@@ -245,9 +245,9 @@ func (c *Config) ListEnabledAgents() []AgentProfile {
 	return enabled
 }
 
-// AddAgent adds a new agent profile
+
 func (c *Config) AddAgent(agent AgentProfile) error {
-	// Check for duplicates
+	
 	if _, err := c.GetAgentByName(agent.Name); err == nil {
 		return fmt.Errorf("agent profile already exists: %s", agent.Name)
 	}
@@ -256,7 +256,7 @@ func (c *Config) AddAgent(agent AgentProfile) error {
 	return nil
 }
 
-// RemoveAgent removes an agent profile by name
+
 func (c *Config) RemoveAgent(name string) error {
 	for i, agent := range c.Agents {
 		if agent.Name == name {
@@ -267,7 +267,7 @@ func (c *Config) RemoveAgent(name string) error {
 	return fmt.Errorf("agent profile not found: %s", name)
 }
 
-// SetDefaultAgent sets the default agent
+
 func (c *Config) SetDefaultAgent(name string) error {
 	if _, err := c.GetAgentByName(name); err != nil {
 		return err

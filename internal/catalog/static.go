@@ -1,7 +1,7 @@
 package catalog
 
-// StaticModels provides fallback model definitions for each provider
-// This is used when dynamic fetching is not available or fails
+
+
 var StaticModels = map[string][]Model{
 	"anthropic": {
 		{
@@ -496,7 +496,7 @@ var StaticModels = map[string][]Model{
 	},
 }
 
-// GetStaticModels returns the static model list for a provider
+
 func GetStaticModels(provider string) []Model {
 	if models, ok := StaticModels[provider]; ok {
 		return models
@@ -504,14 +504,14 @@ func GetStaticModels(provider string) []Model {
 	return nil
 }
 
-// ProviderConfigs defines static provider configurations
+
 var ProviderConfigs = map[string]ProviderConfig{
 	"anthropic": {
 		Name:           "anthropic",
 		BaseURL:        "https://api.anthropic.com/v1",
 		AuthMethod:     AuthMethodAPIKey,
 		ModelsEndpoint: "/models",
-		SupportsList:   false, // Anthropic doesn't expose a public models endpoint
+		SupportsList:   false, 
 		RequiresAuth:   true,
 		RateLimitRPS:   50,
 		DefaultHeaders: map[string]string{
@@ -552,17 +552,17 @@ var ProviderConfigs = map[string]ProviderConfig{
 		ModelsEndpoint: "/models",
 		SupportsList:   true,
 		RequiresAuth:   false,
-		RateLimitRPS:   0, // No rate limiting for local
+		RateLimitRPS:   0, 
 	},
 }
 
-// GetProviderConfig returns the static configuration for a provider
+
 func GetProviderConfig(name string) (ProviderConfig, bool) {
 	config, ok := ProviderConfigs[name]
 	return config, ok
 }
 
-// GetAllProviderConfigs returns all provider configurations
+
 func GetAllProviderConfigs() []ProviderConfig {
 	configs := make([]ProviderConfig, 0, len(ProviderConfigs))
 	for _, config := range ProviderConfigs {

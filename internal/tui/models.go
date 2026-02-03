@@ -15,20 +15,20 @@ import (
 )
 
 var (
-	// Title styles
+	
 	titleStyle = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#7D56F4")).
 			MarginBottom(1)
 
-	// Configured indicator
+	
 	configuredStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#04B575")).
 			Bold(true)
 
 	configuredIndicator = configuredStyle.Render("✓ Configured")
 
-	// Provider header
+	
 	providerStyle = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#3C3C3C")).
@@ -36,18 +36,18 @@ var (
 			Padding(0, 1).
 			MarginTop(1)
 
-	// Default indicator
+	
 	defaultIndicator = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#FFD700")).
 				Bold(true).
 				Render(" ⭐ Default")
 
-	// Help text
+	
 	helpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#808080")).
 			MarginTop(1)
 
-	// Model name styles
+	
 	configuredNameStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#04B575")).
 				Bold(true)
@@ -55,25 +55,25 @@ var (
 	unconfiguredNameStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#C0C0C0"))
 
-	// Description styles
+	
 	configuredDescStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#808080"))
 
 	unconfiguredDescStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#606060"))
 
-	// Selection indicator
+	
 	selectedStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#7D56F4")).
 			Bold(true)
 
-	// Error style
+	
 	errorStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF0000")).
 			Bold(true)
 )
 
-// ModelItem represents a model in the list
+
 type ModelItem struct {
 	Model      models.ModelInfo
 	Configured bool
@@ -86,7 +86,7 @@ func (i ModelItem) FilterValue() string {
 	return i.Model.Name + " " + i.Model.Provider + " " + i.Model.Description
 }
 
-// KeyMap defines key bindings
+
 type KeyMap struct {
 	Select    key.Binding
 	Configure key.Binding
@@ -118,7 +118,7 @@ var DefaultKeyMap = KeyMap{
 	),
 }
 
-// Model is the Bubble Tea model for the models TUI
+
 type Model struct {
 	list           list.Model
 	keys           KeyMap
@@ -132,9 +132,9 @@ type Model struct {
 	quitting       bool
 }
 
-// NewModel creates a new TUI model
+
 func NewModel(cfg *config.Config, keyMgr *secrets.AgentKeyManager) Model {
-	// Build configured map
+	
 	configured := make(map[string]bool)
 	for _, agent := range cfg.Agents {
 		if agent.Enabled {
@@ -142,7 +142,7 @@ func NewModel(cfg *config.Config, keyMgr *secrets.AgentKeyManager) Model {
 		}
 	}
 
-	// Build list items grouped by provider
+	
 	var items []list.Item
 	providerKeys := models.GetProviderKeys()
 
@@ -161,7 +161,7 @@ func NewModel(cfg *config.Config, keyMgr *secrets.AgentKeyManager) Model {
 		}
 	}
 
-	// Setup list
+	
 	l := list.New(items, modelDelegate{}, 80, 20)
 	l.Title = "AI Models"
 	l.SetShowStatusBar(false)
@@ -183,7 +183,7 @@ func NewModel(cfg *config.Config, keyMgr *secrets.AgentKeyManager) Model {
 	}
 }
 
-// modelDelegate customizes how items are rendered
+
 type modelDelegate struct{}
 
 func (d modelDelegate) Height() int  { return 2 }
@@ -197,16 +197,16 @@ func (d modelDelegate) Render(w io.Writer, m list.Model, index int, item list.It
 		return
 	}
 
-	// Build the display
+	
 	var lines []string
 
-	// Selection indicator
+	
 	cursor := "  "
 	if index == m.Index() {
 		cursor = selectedStyle.Render("❯ ")
 	}
 
-	// Model name
+	
 	var nameStr string
 	if i.Configured {
 		nameStr = configuredNameStyle.Render(i.Model.Name)
@@ -214,7 +214,7 @@ func (d modelDelegate) Render(w io.Writer, m list.Model, index int, item list.It
 		nameStr = unconfiguredNameStyle.Render(i.Model.Name)
 	}
 
-	// First line: cursor + name + indicators
+	
 	firstLine := cursor + nameStr
 
 	if i.Configured {
@@ -227,7 +227,7 @@ func (d modelDelegate) Render(w io.Writer, m list.Model, index int, item list.It
 
 	lines = append(lines, firstLine)
 
-	// Second line: description (indented)
+	
 	var descStr string
 	if i.Configured {
 		descStr = configuredDescStyle.Render("    " + i.Model.Description)
@@ -239,12 +239,12 @@ func (d modelDelegate) Render(w io.Writer, m list.Model, index int, item list.It
 	fmt.Fprint(w, strings.Join(lines, "\n"))
 }
 
-// Init initializes the TUI
+
 func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-// Update handles messages
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -268,11 +268,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Configure):
-			// Will be handled by parent
+			
 			return m, nil
 
 		case key.Matches(msg, m.keys.Remove):
-			// Will be handled by parent
+			
 			return m, nil
 
 		case key.Matches(msg, m.keys.Help):
@@ -286,7 +286,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-// View renders the TUI
+
 func (m Model) View() string {
 	if m.quitting {
 		return ""
@@ -294,11 +294,11 @@ func (m Model) View() string {
 
 	var s strings.Builder
 
-	// Title
+	
 	s.WriteString(titleStyle.Render("🤖 AI Model Selector"))
 	s.WriteString("\n\n")
 
-	// Configured providers section
+	
 	s.WriteString(lipgloss.NewStyle().Bold(true).Render("Configured Providers:"))
 	s.WriteString("\n")
 
@@ -319,10 +319,10 @@ func (m Model) View() string {
 
 	s.WriteString("\n")
 
-	// List
+	
 	s.WriteString(m.list.View())
 
-	// Help
+	
 	if m.showHelp {
 		s.WriteString("\n")
 		s.WriteString(helpStyle.Render(
@@ -330,7 +330,7 @@ func (m Model) View() string {
 		))
 	}
 
-	// Error
+	
 	if m.err != nil {
 		s.WriteString("\n")
 		s.WriteString(errorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
@@ -339,12 +339,12 @@ func (m Model) View() string {
 	return s.String()
 }
 
-// GetSelected returns the selected item
+
 func (m Model) GetSelected() *ModelItem {
 	return m.selectedItem
 }
 
-// SetError sets an error to display
+
 func (m *Model) SetError(err error) {
 	m.err = err
 }

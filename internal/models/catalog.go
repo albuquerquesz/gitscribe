@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// ModelInfo contains metadata about an AI model
+
 type ModelInfo struct {
 	ID          string
 	Name        string
@@ -16,7 +16,7 @@ type ModelInfo struct {
 	Tags        []string
 }
 
-// ProviderInfo contains information about a provider
+
 type ProviderInfo struct {
 	Name           string
 	DisplayName    string
@@ -25,7 +25,7 @@ type ProviderInfo struct {
 	Description    string
 }
 
-// Available providers
+
 var Providers = map[string]ProviderInfo{
 	"anthropic": {
 		Name:           "anthropic",
@@ -71,7 +71,7 @@ var Providers = map[string]ProviderInfo{
 	},
 }
 
-// ModelCatalog contains all available models grouped by provider
+
 var ModelCatalog = map[string][]ModelInfo{
 	"anthropic": {
 		{
@@ -267,7 +267,7 @@ var ModelCatalog = map[string][]ModelInfo{
 	},
 }
 
-// GetModelsForProvider returns all models for a given provider
+
 func GetModelsForProvider(provider string) []ModelInfo {
 	if models, ok := ModelCatalog[provider]; ok {
 		return models
@@ -275,7 +275,7 @@ func GetModelsForProvider(provider string) []ModelInfo {
 	return []ModelInfo{}
 }
 
-// GetModelByID returns a specific model by its ID
+
 func GetModelByID(provider, modelID string) (ModelInfo, error) {
 	models := GetModelsForProvider(provider)
 	for _, m := range models {
@@ -286,7 +286,7 @@ func GetModelByID(provider, modelID string) (ModelInfo, error) {
 	return ModelInfo{}, fmt.Errorf("model %s not found for provider %s", modelID, provider)
 }
 
-// GetAllModels returns all models from all providers
+
 func GetAllModels() []ModelInfo {
 	var all []ModelInfo
 	for _, models := range ModelCatalog {
@@ -295,7 +295,7 @@ func GetAllModels() []ModelInfo {
 	return all
 }
 
-// GetProviderKeys returns all provider names
+
 func GetProviderKeys() []string {
 	keys := make([]string, 0, len(Providers))
 	for k := range Providers {
@@ -304,7 +304,7 @@ func GetProviderKeys() []string {
 	return keys
 }
 
-// SupportsOAuth2 checks if a provider supports OAuth2 authentication
+
 func SupportsOAuth2(provider string) bool {
 	if p, ok := Providers[provider]; ok {
 		return p.SupportsOAuth2
@@ -312,14 +312,14 @@ func SupportsOAuth2(provider string) bool {
 	return false
 }
 
-// GenerateProfileName creates a profile name from provider and model
+
 func GenerateProfileName(provider, modelID string) string {
-	// Remove version dates and special chars
+	
 	cleanModel := strings.ReplaceAll(modelID, "-", "_")
 	cleanModel = strings.ReplaceAll(cleanModel, ".", "_")
 	cleanModel = strings.ReplaceAll(cleanModel, "/", "_")
 
-	// Remove date patterns like 20241022
+	
 	if idx := strings.LastIndex(cleanModel, "_20"); idx != -1 {
 		cleanModel = cleanModel[:idx]
 	}

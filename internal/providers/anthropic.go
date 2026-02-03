@@ -13,83 +13,83 @@ import (
 )
 
 const (
-	// Anthropic OAuth2 endpoints (these are example endpoints - replace with actual Anthropic endpoints)
+	
 	anthropicAuthEndpoint   = "https://api.anthropic.com/oauth/authorize"
 	anthropicTokenEndpoint  = "https://api.anthropic.com/oauth/token"
 	anthropicAPIKeyEndpoint = "https://api.anthropic.com/v1/keys"
 
-	// Public client ID for PKCE flow (no client secret needed)
+	
 	anthropicClientID = "gitscribe-cli-public"
 )
 
-// AnthropicScopes defines the required OAuth scopes
+
 var AnthropicScopes = []string{
 	"org:create_api_key",
 	"user:profile",
 	"user:inference",
 }
 
-// AnthropicProvider implements the OAuth2 provider interface for Anthropic
+
 type AnthropicProvider struct {
 	baseURL string
 }
 
-// NewAnthropicProvider creates a new Anthropic OAuth provider
+
 func NewAnthropicProvider() *AnthropicProvider {
 	return &AnthropicProvider{
 		baseURL: "https://api.anthropic.com",
 	}
 }
 
-// NewAnthropicProviderWithBaseURL creates a provider with a custom base URL (for testing/enterprise)
+
 func NewAnthropicProviderWithBaseURL(baseURL string) *AnthropicProvider {
 	return &AnthropicProvider{
 		baseURL: baseURL,
 	}
 }
 
-// Name returns the provider name
+
 func (a *AnthropicProvider) Name() string {
 	return "anthropic"
 }
 
-// AuthorizationEndpoint returns the OAuth2 authorization URL
+
 func (a *AnthropicProvider) AuthorizationEndpoint() string {
 	return a.baseURL + "/oauth/authorize"
 }
 
-// TokenEndpoint returns the OAuth2 token exchange URL
+
 func (a *AnthropicProvider) TokenEndpoint() string {
 	return a.baseURL + "/oauth/token"
 }
 
-// Scopes returns the required OAuth2 scopes
+
 func (a *AnthropicProvider) Scopes() []string {
 	return AnthropicScopes
 }
 
-// ClientID returns the OAuth2 client ID
+
 func (a *AnthropicProvider) ClientID() string {
 	return anthropicClientID
 }
 
-// SupportsPKCE returns true as Anthropic supports PKCE
+
 func (a *AnthropicProvider) SupportsPKCE() bool {
 	return true
 }
 
-// APIKeyEndpoint returns the API key generation endpoint
+
 func (a *AnthropicProvider) APIKeyEndpoint() string {
 	return a.baseURL + "/v1/admin/keys"
 }
 
-// APIKeyRequest represents the request body for creating an API key
+
 type APIKeyRequest struct {
 	Name   string   `json:"name"`
 	Scopes []string `json:"scopes,omitempty"`
 }
 
-// APIKeyResponse represents the response from creating an API key
+
 type APIKeyResponse struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
@@ -99,9 +99,9 @@ type APIKeyResponse struct {
 	CreatedBy string    `json:"created_by"`
 }
 
-// GenerateAPIKey generates a new API key using the access token
+
 func (a *AnthropicProvider) GenerateAPIKey(ctx context.Context, accessToken string) (string, error) {
-	// Create API key request
+	
 	reqBody := APIKeyRequest{
 		Name: "gitscribe-cli-auto-generated",
 		Scopes: []string{
@@ -115,7 +115,7 @@ func (a *AnthropicProvider) GenerateAPIKey(ctx context.Context, accessToken stri
 		return "", fmt.Errorf("failed to marshal API key request: %w", err)
 	}
 
-	// Make request to create API key
+	
 	req, err := http.NewRequestWithContext(ctx, "POST", a.APIKeyEndpoint(), bytes.NewReader(jsonBody))
 	if err != nil {
 		return "", fmt.Errorf("failed to create API key request: %w", err)
@@ -153,7 +153,7 @@ func (a *AnthropicProvider) GenerateAPIKey(ctx context.Context, accessToken stri
 	return apiKeyResp.Key, nil
 }
 
-// VerifyToken verifies that an access token is valid
+
 func (a *AnthropicProvider) VerifyToken(ctx context.Context, accessToken string) error {
 	req, err := http.NewRequestWithContext(ctx, "GET", a.baseURL+"/v1/me", nil)
 	if err != nil {
@@ -182,5 +182,5 @@ func (a *AnthropicProvider) VerifyToken(ctx context.Context, accessToken string)
 	return nil
 }
 
-// Ensure AnthropicProvider implements the Provider interface
+
 var _ auth.Provider = (*AnthropicProvider)(nil)

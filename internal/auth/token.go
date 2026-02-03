@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// ExchangeCode exchanges the authorization code for tokens
+
 func ExchangeCode(ctx context.Context, provider Provider, code, redirectURL, codeVerifier string) (*TokenResponse, error) {
 	tokenURL := provider.TokenEndpoint()
 
@@ -25,13 +25,13 @@ func ExchangeCode(ctx context.Context, provider Provider, code, redirectURL, cod
 
 	var lastErr error
 
-	// Retry logic with exponential backoff (max 3 retries)
+	
 	const maxRetries = 3
 	var baseDelay = 500 * time.Millisecond
 
 	for attempt := 0; attempt < maxRetries; attempt++ {
 		if attempt > 0 {
-			// Exponential backoff: 500ms, 1s, 2s
+			
 			delay := baseDelay * time.Duration(1<<(attempt-1))
 			select {
 			case <-time.After(delay):
@@ -55,7 +55,7 @@ func ExchangeCode(ctx context.Context, provider Provider, code, redirectURL, cod
 		resp, err := client.Do(req)
 		if err != nil {
 			lastErr = fmt.Errorf("token request failed: %w", err)
-			continue // Retry on network errors
+			continue 
 		}
 
 		body, err := io.ReadAll(resp.Body)
@@ -66,12 +66,12 @@ func ExchangeCode(ctx context.Context, provider Provider, code, redirectURL, cod
 		}
 
 		if resp.StatusCode != http.StatusOK {
-			// Check if it's a server error (5xx) - these are retryable
+			
 			if resp.StatusCode >= 500 && resp.StatusCode < 600 {
 				lastErr = fmt.Errorf("server error %d: %s", resp.StatusCode, string(body))
 				continue
 			}
-			// Client errors (4xx) are not retryable
+			
 			return nil, fmt.Errorf("%w: status %d: %s", ErrTokenExchange, resp.StatusCode, string(body))
 		}
 
@@ -80,7 +80,7 @@ func ExchangeCode(ctx context.Context, provider Provider, code, redirectURL, cod
 			return nil, fmt.Errorf("%w: failed to parse response: %v", ErrTokenExchange, err)
 		}
 
-		// Calculate expiration time
+		
 		if tr.ExpiresIn > 0 {
 			tr.ExpiresAt = time.Now().Add(time.Duration(tr.ExpiresIn) * time.Second)
 		}
@@ -91,7 +91,7 @@ func ExchangeCode(ctx context.Context, provider Provider, code, redirectURL, cod
 	return nil, fmt.Errorf("%w: %v", ErrTokenExchange, lastErr)
 }
 
-// RefreshToken refreshes an access token using a refresh token
+
 func RefreshToken(ctx context.Context, provider Provider, refreshToken string) (*TokenResponse, error) {
 	tokenURL := provider.TokenEndpoint()
 
@@ -137,7 +137,7 @@ func RefreshToken(ctx context.Context, provider Provider, refreshToken string) (
 		tr.ExpiresAt = time.Now().Add(time.Duration(tr.ExpiresIn) * time.Second)
 	}
 
-	// Keep the refresh token if a new one wasn't provided
+	
 	if tr.RefreshToken == "" {
 		tr.RefreshToken = refreshToken
 	}

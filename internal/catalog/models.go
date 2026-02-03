@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Capability represents what a model can do
+
 type Capability string
 
 const (
@@ -20,7 +20,7 @@ const (
 	CapabilityJSON         Capability = "json_mode"
 )
 
-// PricingTier indicates the cost category
+
 type PricingTier string
 
 const (
@@ -31,7 +31,7 @@ const (
 	PricingEnterprise PricingTier = "enterprise"
 )
 
-// ModelStatus indicates availability status
+
 type ModelStatus string
 
 const (
@@ -42,15 +42,15 @@ const (
 	ModelStatusRemoved   ModelStatus = "removed"
 )
 
-// Model represents a single AI model with its metadata
+
 type Model struct {
 	ID              string       `json:"id" yaml:"id"`
 	Provider        string       `json:"provider" yaml:"provider"`
 	Name            string       `json:"name" yaml:"name"`
 	Description     string       `json:"description,omitempty" yaml:"description,omitempty"`
 	MaxTokens       int          `json:"max_tokens" yaml:"max_tokens"`
-	InputPrice      float64      `json:"input_price_per_1m" yaml:"input_price_per_1m"`   // per 1M tokens
-	OutputPrice     float64      `json:"output_price_per_1m" yaml:"output_price_per_1m"` // per 1M tokens
+	InputPrice      float64      `json:"input_price_per_1m" yaml:"input_price_per_1m"`   
+	OutputPrice     float64      `json:"output_price_per_1m" yaml:"output_price_per_1m"` 
 	PricingTier     PricingTier  `json:"pricing_tier" yaml:"pricing_tier"`
 	Capabilities    []Capability `json:"capabilities" yaml:"capabilities"`
 	Status          ModelStatus  `json:"status" yaml:"status"`
@@ -60,22 +60,22 @@ type Model struct {
 	SupportsToolUse bool         `json:"supports_tool_use" yaml:"supports_tool_use"`
 	RecommendedFor  []string     `json:"recommended_for,omitempty" yaml:"recommended_for,omitempty"`
 	Aliases         []string     `json:"aliases,omitempty" yaml:"aliases,omitempty"`
-	CreatedAt       int64        `json:"created_at,omitempty" yaml:"created_at,omitempty"` // Unix timestamp from API
+	CreatedAt       int64        `json:"created_at,omitempty" yaml:"created_at,omitempty"` 
 }
 
-// ProviderConfig contains provider-specific settings
+
 type ProviderConfig struct {
 	Name           string            `json:"name" yaml:"name"`
 	BaseURL        string            `json:"base_url" yaml:"base_url"`
 	AuthMethod     AuthMethod        `json:"auth_method" yaml:"auth_method"`
 	DefaultHeaders map[string]string `json:"default_headers,omitempty" yaml:"default_headers,omitempty"`
 	ModelsEndpoint string            `json:"models_endpoint,omitempty" yaml:"models_endpoint,omitempty"`
-	SupportsList   bool              `json:"supports_list" yaml:"supports_list"` // Can fetch models dynamically
+	SupportsList   bool              `json:"supports_list" yaml:"supports_list"` 
 	RequiresAuth   bool              `json:"requires_auth" yaml:"requires_auth"`
 	RateLimitRPS   int               `json:"rate_limit_rps,omitempty" yaml:"rate_limit_rps,omitempty"`
 }
 
-// AuthMethod defines how authentication is handled
+
 type AuthMethod string
 
 const (
@@ -86,14 +86,14 @@ const (
 	AuthMethodCustom AuthMethod = "custom"
 )
 
-// ProviderModels groups models by provider
+
 type ProviderModels struct {
 	Provider ProviderConfig `json:"provider" yaml:"provider"`
 	Models   []Model        `json:"models" yaml:"models"`
 	Updated  time.Time      `json:"updated" yaml:"updated"`
 }
 
-// CatalogMetadata tracks catalog version and freshness
+
 type CatalogMetadata struct {
 	Version     string    `json:"version" yaml:"version"`
 	Generated   time.Time `json:"generated" yaml:"generated"`
@@ -101,13 +101,13 @@ type CatalogMetadata struct {
 	LastUpdated time.Time `json:"last_updated" yaml:"last_updated"`
 }
 
-// ModelCatalog is the root structure containing all models
+
 type ModelCatalog struct {
 	Metadata  CatalogMetadata  `json:"metadata" yaml:"metadata"`
 	Providers []ProviderModels `json:"providers" yaml:"providers"`
 }
 
-// FilterOptions for searching models
+
 type FilterOptions struct {
 	Provider       string
 	Capability     Capability
@@ -118,14 +118,14 @@ type FilterOptions struct {
 	SupportsVision bool
 }
 
-// GetModelByID finds a model by its ID across all providers
+
 func (c *ModelCatalog) GetModelByID(id string) (*Model, error) {
 	for _, pm := range c.Providers {
 		for i := range pm.Models {
 			if pm.Models[i].ID == id {
 				return &pm.Models[i], nil
 			}
-			// Check aliases
+			
 			for _, alias := range pm.Models[i].Aliases {
 				if alias == id {
 					return &pm.Models[i], nil
@@ -136,7 +136,7 @@ func (c *ModelCatalog) GetModelByID(id string) (*Model, error) {
 	return nil, fmt.Errorf("model not found: %s", id)
 }
 
-// GetModelsByProvider returns all models for a specific provider
+
 func (c *ModelCatalog) GetModelsByProvider(provider string) []Model {
 	for _, pm := range c.Providers {
 		if pm.Provider.Name == provider {
@@ -146,7 +146,7 @@ func (c *ModelCatalog) GetModelsByProvider(provider string) []Model {
 	return nil
 }
 
-// Filter returns models matching the given criteria
+
 func (c *ModelCatalog) Filter(opts FilterOptions) []Model {
 	var results []Model
 
@@ -197,18 +197,18 @@ func hasCapability(caps []Capability, target Capability) bool {
 	return false
 }
 
-// String returns a formatted display string for the model
+
 func (m Model) String() string {
 	return fmt.Sprintf("%s (%s) - %s - %d tokens - $%.2f/1M in",
 		m.Name, m.ID, m.PricingTier, m.ContextWindow, m.InputPrice)
 }
 
-// JSON returns JSON representation
+
 func (m Model) JSON() ([]byte, error) {
 	return json.MarshalIndent(m, "", "  ")
 }
 
-// IsAvailable returns true if the model is currently usable
+
 func (m Model) IsAvailable() bool {
 	return m.Status == ModelStatusAvailable || m.Status == ModelStatusPreview || m.Status == ModelStatusBeta
 }

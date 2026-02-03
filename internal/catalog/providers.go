@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-// anthropicProvider implements ModelProvider for Anthropic
+
 type anthropicProvider struct {
 	config ProviderConfig
 }
 
-// NewAnthropicProvider creates a new Anthropic provider
+
 func NewAnthropicProvider() ModelProvider {
 	return &anthropicProvider{
 		config: ProviderConfigs["anthropic"],
@@ -29,16 +29,16 @@ func (p *anthropicProvider) Config() ProviderConfig {
 }
 
 func (p *anthropicProvider) SupportsDynamicFetch() bool {
-	return false // Anthropic doesn't expose a public models endpoint
+	return false 
 }
 
 func (p *anthropicProvider) FetchModels(ctx context.Context, apiKey string) ([]Model, error) {
-	// Anthropic doesn't support dynamic fetching
+	
 	return nil, fmt.Errorf("anthropic does not support dynamic model fetching")
 }
 
 func (p *anthropicProvider) ValidateAPIKey(ctx context.Context, apiKey string) error {
-	// Simple validation - make a request to list models (which requires auth)
+	
 	client := &http.Client{Timeout: 10 * time.Second}
 
 	req, err := http.NewRequestWithContext(ctx, "GET", p.config.BaseURL+"/models", nil)
@@ -70,12 +70,12 @@ func (p *anthropicProvider) GetDefaultModels() []Model {
 	return GetStaticModels("anthropic")
 }
 
-// openAIProvider implements ModelProvider for OpenAI
+
 type openAIProvider struct {
 	config ProviderConfig
 }
 
-// NewOpenAIProvider creates a new OpenAI provider
+
 func NewOpenAIProvider() ModelProvider {
 	return &openAIProvider{
 		config: ProviderConfigs["openai"],
@@ -129,7 +129,7 @@ func (p *openAIProvider) FetchModels(ctx context.Context, apiKey string) ([]Mode
 
 	models := make([]Model, 0, len(result.Data))
 	for _, m := range result.Data {
-		// Skip non-chat models
+		
 		if !isChatModel(m.ID) {
 			continue
 		}
@@ -142,7 +142,7 @@ func (p *openAIProvider) FetchModels(ctx context.Context, apiKey string) ([]Mode
 			CreatedAt: m.Created,
 		}
 
-		// Try to match with static data for richer info
+		
 		if static, err := findStaticModel("openai", m.ID); err == nil {
 			model.Name = static.Name
 			model.Description = static.Description
@@ -193,7 +193,7 @@ func (p *openAIProvider) GetDefaultModels() []Model {
 	return GetStaticModels("openai")
 }
 
-// isChatModel filters for chat-capable models
+
 func isChatModel(id string) bool {
 	chatPrefixes := []string{
 		"gpt-", "o1-", "text-embedding-",
@@ -206,12 +206,12 @@ func isChatModel(id string) bool {
 	return false
 }
 
-// groqProvider implements ModelProvider for Groq
+
 type groqProvider struct {
 	config ProviderConfig
 }
 
-// NewGroqProvider creates a new Groq provider
+
 func NewGroqProvider() ModelProvider {
 	return &groqProvider{
 		config: ProviderConfigs["groq"],
@@ -275,7 +275,7 @@ func (p *groqProvider) FetchModels(ctx context.Context, apiKey string) ([]Model,
 			CreatedAt:     m.Created,
 		}
 
-		// Try to match with static data
+		
 		if static, err := findStaticModel("groq", m.ID); err == nil {
 			model.Name = static.Name
 			model.Description = static.Description
@@ -325,12 +325,12 @@ func (p *groqProvider) GetDefaultModels() []Model {
 	return GetStaticModels("groq")
 }
 
-// openRouterProvider implements ModelProvider for OpenRouter
+
 type openRouterProvider struct {
 	config ProviderConfig
 }
 
-// NewOpenRouterProvider creates a new OpenRouter provider
+
 func NewOpenRouterProvider() ModelProvider {
 	return &openRouterProvider{
 		config: ProviderConfigs["openrouter"],
@@ -358,7 +358,7 @@ func (p *openRouterProvider) FetchModels(ctx context.Context, apiKey string) ([]
 	}
 
 	req.Header.Set("Authorization", "Bearer "+apiKey)
-	req.Header.Set("HTTP-Referer", "https://gitscribe.ai") // Required by OpenRouter
+	req.Header.Set("HTTP-Referer", "https://gitscribe.ai") 
 	req.Header.Set("X-Title", "GitScribe")
 
 	resp, err := client.Do(req)
@@ -394,10 +394,10 @@ func (p *openRouterProvider) FetchModels(ctx context.Context, apiKey string) ([]
 
 	models := make([]Model, 0, len(result.Data))
 	for _, m := range result.Data {
-		// Skip free models or those with zero pricing if desired
-		// if m.Pricing.Prompt == 0 && m.Pricing.Completion == 0 {
-		// 	continue
-		// }
+		
+		
+		
+		
 
 		model := Model{
 			ID:              m.ID,
@@ -406,15 +406,15 @@ func (p *openRouterProvider) FetchModels(ctx context.Context, apiKey string) ([]
 			Description:     m.Description,
 			ContextWindow:   m.ContextLength,
 			MaxTokens:       m.ContextLength,
-			InputPrice:      m.Pricing.Prompt * 1000000, // Convert to per 1M
+			InputPrice:      m.Pricing.Prompt * 1000000, 
 			OutputPrice:     m.Pricing.Completion * 1000000,
 			Status:          ModelStatusAvailable,
 			Capabilities:    []Capability{CapabilityChat},
-			SupportsVision:  false, // Would need to check per model
+			SupportsVision:  false, 
 			SupportsToolUse: false,
 		}
 
-		// Try to match with static data
+		
 		if static, err := findStaticModel("openrouter", m.ID); err == nil {
 			model.Capabilities = static.Capabilities
 			model.SupportsVision = static.SupportsVision
@@ -422,7 +422,7 @@ func (p *openRouterProvider) FetchModels(ctx context.Context, apiKey string) ([]
 			model.PricingTier = static.PricingTier
 		}
 
-		// Determine pricing tier based on prices
+		
 		if model.InputPrice == 0 && model.OutputPrice == 0 {
 			model.PricingTier = PricingFree
 		} else if model.InputPrice < 0.5 {
@@ -470,12 +470,12 @@ func (p *openRouterProvider) GetDefaultModels() []Model {
 	return GetStaticModels("openrouter")
 }
 
-// ollamaProvider implements ModelProvider for Ollama (local)
+
 type ollamaProvider struct {
 	config ProviderConfig
 }
 
-// NewOllamaProvider creates a new Ollama provider
+
 func NewOllamaProvider() ModelProvider {
 	return &ollamaProvider{
 		config: ProviderConfigs["ollama"],
@@ -495,11 +495,11 @@ func (p *ollamaProvider) SupportsDynamicFetch() bool {
 }
 
 func (p *ollamaProvider) FetchModels(ctx context.Context, apiKey string) ([]Model, error) {
-	// Ollama doesn't use the OpenAI-compatible /models endpoint
-	// It uses /api/tags for listing models
+	
+	
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	// Try OpenAI-compatible endpoint first
+	
 	req, err := http.NewRequestWithContext(ctx, "GET", p.config.BaseURL+"/models", nil)
 	if err != nil {
 		return nil, err
@@ -507,7 +507,7 @@ func (p *ollamaProvider) FetchModels(ctx context.Context, apiKey string) ([]Mode
 
 	resp, err := client.Do(req)
 	if err != nil {
-		// Fall back to Ollama native API
+		
 		return p.fetchFromOllamaAPI(ctx)
 	}
 	defer resp.Body.Close()
@@ -538,7 +538,7 @@ func (p *ollamaProvider) FetchModels(ctx context.Context, apiKey string) ([]Mode
 			Capabilities: []Capability{CapabilityChat},
 		}
 
-		// Try to match with static data
+		
 		if static, err := findStaticModel("ollama", m.ID); err == nil {
 			model.Name = static.Name
 			model.Description = static.Description
@@ -556,7 +556,7 @@ func (p *ollamaProvider) FetchModels(ctx context.Context, apiKey string) ([]Mode
 func (p *ollamaProvider) fetchFromOllamaAPI(ctx context.Context) ([]Model, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	// Extract base URL without /v1
+	
 	baseURL := "http://localhost:11434"
 
 	req, err := http.NewRequestWithContext(ctx, "GET", baseURL+"/api/tags", nil)
@@ -607,15 +607,15 @@ func (p *ollamaProvider) fetchFromOllamaAPI(ctx context.Context) ([]Model, error
 			SupportsToolUse: false,
 		}
 
-		// Add details from Ollama
+		
 		if m.Details.Family != "" {
 			model.Description = fmt.Sprintf("%s %s model", m.Details.Family, m.Details.ParameterSize)
 		}
 
-		// Try to match with static data for richer info
+		
 		baseName := m.Name
 		if idx := len(m.Name); idx > 0 {
-			// Remove :latest or :version tag
+			
 			for i := len(m.Name) - 1; i >= 0; i-- {
 				if m.Name[i] == ':' {
 					baseName = m.Name[:i]
@@ -640,8 +640,8 @@ func (p *ollamaProvider) fetchFromOllamaAPI(ctx context.Context) ([]Model, error
 }
 
 func (p *ollamaProvider) ValidateAPIKey(ctx context.Context, apiKey string) error {
-	// Ollama doesn't require API keys for local usage
-	// Just check if Ollama is running
+	
+	
 	client := &http.Client{Timeout: 5 * time.Second}
 
 	req, err := http.NewRequestWithContext(ctx, "GET", "http://localhost:11434/api/tags", nil)
@@ -666,14 +666,14 @@ func (p *ollamaProvider) GetDefaultModels() []Model {
 	return GetStaticModels("ollama")
 }
 
-// findStaticModel looks up a model in the static catalog
+
 func findStaticModel(provider, id string) (*Model, error) {
 	models := GetStaticModels(provider)
 	for i := range models {
 		if models[i].ID == id {
 			return &models[i], nil
 		}
-		// Check aliases
+		
 		for _, alias := range models[i].Aliases {
 			if alias == id {
 				return &models[i], nil
@@ -683,9 +683,9 @@ func findStaticModel(provider, id string) (*Model, error) {
 	return nil, fmt.Errorf("model not found in static catalog: %s", id)
 }
 
-// Model needs a CreatedAt field for the provider fetchers
-// Add it to the struct
+
+
 func init() {
-	// This will be called at package init time
-	// The CreatedAt field was added to Model struct in models.go
+	
+	
 }
