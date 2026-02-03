@@ -23,7 +23,7 @@ var (
 
 	BoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("62")),
+			BorderForeground(lipgloss.Color("62")).
 			Padding(1, 2).
 			MarginTop(1).
 			MarginBottom(1)
@@ -108,9 +108,6 @@ func getModelOptions(manager *catalog.CatalogManager, provider string) []huh.Opt
 	models := manager.GetModelsByProvider(provider)
 	var opts []huh.Option[string]
 	for _, mod := range models {
-		if !mod.IsAvailable() {
-			continue
-		}
 		opts = append(opts, huh.NewOption(mod.Name, mod.ID))
 	}
 	if len(opts) == 0 {
