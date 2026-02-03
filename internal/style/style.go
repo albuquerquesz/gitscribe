@@ -190,6 +190,22 @@ func StringMask(str string) string {
 	return str[:8] + "********"
 }
 
+func SuccessIcon() string {
+	return "✓"
+}
+
+func ErrorIcon() string {
+	return "✗"
+}
+
+func WarningIcon() string {
+	return "⚠"
+}
+
+func InfoIcon() string {
+	return "ℹ"
+}
+
 func Info(msg string) {
 	fmt.Println(InfoStyle.Render("ℹ " + msg))
 }

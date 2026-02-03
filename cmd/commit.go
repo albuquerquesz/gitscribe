@@ -13,9 +13,10 @@ import (
 var msg, branch, commitAgent string
 
 var commitCmd = &cobra.Command{
-	Use:   "cmt [files]",
-	Args:  cobra.MinimumNArgs(0),
-	Short: "AI-powered git add, commit, and push",
+	Use:     "commit [files]",
+	Aliases: []string{"cmt"},
+	Args:    cobra.MinimumNArgs(0),
+	Short:   "AI-powered git add, commit, and push",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return commit(args)
 	},
@@ -97,3 +98,4 @@ func commit(files []string) error {
 
 	return nil
 }
+

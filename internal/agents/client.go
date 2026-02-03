@@ -3,6 +3,7 @@ package agents
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -182,13 +183,12 @@ func NewFactory() *Factory {
 }
 
 func (f *Factory) CreateClient(profile config.AgentProfile) (Client, error) {
-	apiKey, err := f.secretsManager.RetrieveAgentKey(profile.Name)
-	if err != nil {
-		apiKey, err = f.secretsManager.Retrieve(profile.KeyringKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve API key for agent %s: %w", profile.Name, err)
-		}
+	apiKey, source := f.resolveAPIKey(profile)
+	if apiKey == "" {
+		return nil, fmt.Errorf("no API key found for agent %s (provider: %s). Configure with 'gs auth set-key -p %s' or set %s environment variable",
+			profile.Name, profile.Provider, profile.Provider, getEnvKeyForProvider(profile.Provider))
 	}
+	_ = source // Can be used for logging/debugging
 
 	switch profile.Provider {
 	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama, config.ProviderOpenCode:
@@ -198,6 +198,44 @@ func (f *Factory) CreateClient(profile config.AgentProfile) (Client, error) {
 	default:
 		return nil, fmt.Errorf("unsupported provider: %s", profile.Provider)
 	}
+}
+
+func getEnvKeyForProvider(provider config.AgentProvider) string {
+	envVars := map[config.AgentProvider]string{
+		config.ProviderOpenAI:     "OPENAI_API_KEY",
+		config.ProviderClaude:     "ANTHROPIC_API_KEY",
+		config.ProviderGroq:       "GROQ_API_KEY",
+		config.ProviderOpenCode:   "OPENCODE_API_KEY",
+		config.ProviderGemini:     "GOOGLE_API_KEY",
+		config.ProviderOpenRouter: "OPENROUTER_API_KEY",
+	}
+	if envVar, ok := envVars[provider]; ok {
+		return os.Getenv(envVar)
+	}
+	return ""
+}
+
+func (f *Factory) resolveAPIKey(profile config.AgentProfile) (apiKey string, source string) {
+	if key, err := f.secretsManager.RetrieveAgentKey(profile.Name); err == nil && key != "" {
+		return key, "keyring"
+	}
+
+	if key, err := f.secretsManager.Retrieve(profile.KeyringKey); err == nil && key != "" {
+		return key, "keyring"
+	}
+
+	if key := getEnvKeyForProvider(profile.Provider); key != "" {
+		return key, "environment"
+	}
+
+	if auth, err := secrets.LoadOpenCodeAuth(); err == nil && auth != nil {
+		providerName := string(profile.Provider)
+		if key, ok := auth.GetAPIKey(providerName); ok {
+			return key, "opencode"
+		}
+	}
+
+	return "", ""
 }
 
 func (f *Factory) CreateClientWithKey(profile config.AgentProfile, apiKey string) (Client, error) {
