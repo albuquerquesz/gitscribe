@@ -13,15 +13,11 @@ import (
 )
 
 const (
-	
-	anthropicAuthEndpoint   = "https://api.anthropic.com/oauth/authorize"
+	anthropicAuthEndpoint   = "https://claude.ai/oauth/authorize"
 	anthropicTokenEndpoint  = "https://api.anthropic.com/oauth/token"
 	anthropicAPIKeyEndpoint = "https://api.anthropic.com/v1/keys"
-
-	
-	anthropicClientID = "gitscribe-cli-public"
+	anthropicClientID      = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
 )
-
 
 var AnthropicScopes = []string{
 	"org:create_api_key",
@@ -29,11 +25,9 @@ var AnthropicScopes = []string{
 	"user:inference",
 }
 
-
 type AnthropicProvider struct {
 	baseURL string
 }
-
 
 func NewAnthropicProvider() *AnthropicProvider {
 	return &AnthropicProvider{
@@ -41,67 +35,41 @@ func NewAnthropicProvider() *AnthropicProvider {
 	}
 }
 
-
-func NewAnthropicProviderWithBaseURL(baseURL string) *AnthropicProvider {
-	return &AnthropicProvider{
-		baseURL: baseURL,
-	}
-}
-
-
 func (a *AnthropicProvider) Name() string {
 	return "anthropic"
 }
 
-
 func (a *AnthropicProvider) AuthorizationEndpoint() string {
-	return a.baseURL + "/oauth/authorize"
+	return anthropicAuthEndpoint
 }
-
 
 func (a *AnthropicProvider) TokenEndpoint() string {
-	return a.baseURL + "/oauth/token"
+	return anthropicTokenEndpoint
 }
-
 
 func (a *AnthropicProvider) Scopes() []string {
 	return AnthropicScopes
 }
 
-
 func (a *AnthropicProvider) ClientID() string {
 	return anthropicClientID
 }
-
 
 func (a *AnthropicProvider) SupportsPKCE() bool {
 	return true
 }
 
-
 func (a *AnthropicProvider) APIKeyEndpoint() string {
 	return a.baseURL + "/v1/admin/keys"
 }
 
-
-type APIKeyRequest struct {
-	Name   string   `json:"name"`
-	Scopes []string `json:"scopes,omitempty"`
+func (a *AnthropicProvider) ExtraParams() map[string]string {
+	return map[string]string{
+		"code": "true",
+	}
 }
-
-
-type APIKeyResponse struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Key       string    `json:"key"`
-	Scopes    []string  `json:"scopes"`
-	CreatedAt time.Time `json:"created_at"`
-	CreatedBy string    `json:"created_by"`
-}
-
 
 func (a *AnthropicProvider) GenerateAPIKey(ctx context.Context, accessToken string) (string, error) {
-	
 	reqBody := APIKeyRequest{
 		Name: "gitscribe-cli-auto-generated",
 		Scopes: []string{
@@ -115,7 +83,6 @@ func (a *AnthropicProvider) GenerateAPIKey(ctx context.Context, accessToken stri
 		return "", fmt.Errorf("failed to marshal API key request: %w", err)
 	}
 
-	
 	req, err := http.NewRequestWithContext(ctx, "POST", a.APIKeyEndpoint(), bytes.NewReader(jsonBody))
 	if err != nil {
 		return "", fmt.Errorf("failed to create API key request: %w", err)
@@ -153,34 +120,30 @@ func (a *AnthropicProvider) GenerateAPIKey(ctx context.Context, accessToken stri
 	return apiKeyResp.Key, nil
 }
 
+type APIKeyRequest struct {
+	Name   string   `json:"name"`
+	Scopes []string `json:"scopes,omitempty"`
+}
 
-func (a *AnthropicProvider) VerifyToken(ctx context.Context, accessToken string) error {
-	req, err := http.NewRequestWithContext(ctx, "GET", a.baseURL+"/v1/me", nil)
-	if err != nil {
-		return fmt.Errorf("failed to create verify request: %w", err)
-	}
+type APIKeyResponse struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Key       string    `json:"key"`
+	Scopes    []string  `json:"scopes"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by"`
+}
 
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Anthropic-Version", "2023-06-01")
+func (a *AnthropicProvider) CallbackPath() string {
 
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
+	return "/oauth/code/callback"
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("token verification failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("token invalid (%d): %s", resp.StatusCode, string(body))
-	}
-
-	return nil
 }
 
 
+
 var _ auth.Provider = (*AnthropicProvider)(nil)
+
+var _ auth.ExtraParamsProvider = (*AnthropicProvider)(nil)
+
+var _ auth.CallbackPathProvider = (*AnthropicProvider)(nil)
