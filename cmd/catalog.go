@@ -13,7 +13,7 @@ import (
 
 var modelsCmd = &cobra.Command{
 	Use:   "models",
-	Short: "Browse and enable AI models interactively",
+	Short: "Browse and enable AI models",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return runModelsInteractive()
 	},
@@ -29,11 +29,7 @@ func runModelsInteractive() error {
 	fmt.Println(style.TitleStyle.Render("\n AI Model Catalog"))
 
 	selected, err := style.SelectModel(manager)
-	if err != nil {
-		return nil
-	}
-
-	if selected == nil {
+	if err != nil || selected == nil {
 		return nil
 	}
 
@@ -44,26 +40,19 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 	apiKey, err := auth.LoadAPIKey(m.Provider)
 	isAuthenticated := err == nil && apiKey != ""
 
-	if isAuthenticated {
-		style.Success(fmt.Sprintf("Authentication found for %s.", m.Provider))
-	} else {
-		style.Info(fmt.Sprintf("Model %s from %s requires authentication.", m.Name, m.Provider))
-
-		if m.Provider == "openai" || m.Provider == "anthropic" {
-			if !style.ConfirmAction(fmt.Sprintf("Do you want to log in to %s via browser?", m.Provider)) {
-				return nil
-			}
-			authProvider = m.Provider
-			if err := runAuth(); err != nil {
-				return err
-			}
-		} else {
-			style.Info(fmt.Sprintf("Please provide an API key for %s", m.Provider))
-			authProvider = m.Provider
-			if err := runSetKey(); err != nil {
-				return err
-			}
+	if !isAuthenticated {
+		style.Info(fmt.Sprintf("Model %s from %s requires an API key.", m.Name, m.Provider))
+		authProvider = m.Provider
+		if err := runSetKey(); err != nil {
+			return err
 		}
+		
+		apiKey, err = auth.LoadAPIKey(m.Provider)
+		if err != nil || apiKey == "" {
+			return fmt.Errorf("API key was not stored correctly")
+		}
+	} else {
+		style.Success(fmt.Sprintf("API key already configured for %s.", m.Provider))
 	}
 
 	cfg, err := appconfig.Load()
@@ -80,7 +69,11 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 	keyringKey := keyMgr.GetAgentKeyName(profileName)
 
 	existing, err := cfg.GetAgentByName(profileName)
-	if err != nil {
+	if err == nil {
+		existing.Enabled = true
+		existing.Model = m.ID
+		existing.KeyringKey = keyringKey
+	} else {
 		newAgent := appconfig.AgentProfile{
 			Name:        profileName,
 			Provider:    appconfig.AgentProvider(m.Provider),
@@ -95,19 +88,10 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 		if err := cfg.AddAgent(newAgent); err != nil {
 			return fmt.Errorf("failed to add agent: %w", err)
 		}
-		style.Success(fmt.Sprintf("Created new agent profile: %s", profileName))
-	} else {
-		existing.Enabled = true
-		existing.Model = m.ID
-		existing.KeyringKey = keyringKey
-		style.Info(fmt.Sprintf("Updated existing agent profile: %s", profileName))
 	}
 
-	providerKey, err := auth.LoadAPIKey(m.Provider)
-	if err == nil && providerKey != "" {
-		if err := keyMgr.StoreAgentKey(profileName, providerKey); err != nil {
-			style.Warning(fmt.Sprintf("Failed to link API key to agent: %v", err))
-		}
+	if err := keyMgr.StoreAgentKey(profileName, apiKey); err != nil {
+		style.Warning(fmt.Sprintf("Failed to link API key to agent: %v", err))
 	}
 
 	if err := cfg.SetDefaultAgent(profileName); err != nil {
@@ -120,4 +104,8 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 
 	style.Success(fmt.Sprintf("Agent %s is now active and set as default!", profileName))
 	return nil
+}
+
+func getCatalogManager() (*catalog.CatalogManager, error) {
+	return catalog.NewCatalogManager(auth.LoadAPIKey), nil
 }

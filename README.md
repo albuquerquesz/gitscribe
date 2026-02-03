@@ -21,10 +21,7 @@ GitScribe analyzes your staged changes and generates Conventional Commit message
 ## Features
 
 -   **Multi-Agent Support**: Choose between OpenAI (GPT-4o), Anthropic (Claude 3.5), OpenCode (Zen), or Groq (Llama 3.3).
--   **Hybrid Authentication**: 
-    -   **OAuth2**: Seamless login via browser for OpenAI and Anthropic.
-    -   **API Keys**: Manual secure entry for providers like OpenCode and Groq.
--   **Secure Storage**: Credentials are encrypted and stored in your **OS Keyring** (Keychain, Gnome Keyring, etc.), never in plain text.
+-   **Secure Key Storage**: All API keys are encrypted and stored in your **OS Keyring** (Keychain, Gnome Keyring, etc.), never in plain text.
 -   **Interactive Selection**: Easily browse and enable models with a polished TUI.
 -   **All-in-One Workflow**: Stage, commit, and push with a single command.
 
@@ -54,13 +51,13 @@ go install github.com/albuquerquesz/gitscribe@latest
 Before using GitScribe for the first time, you need to enable at least one AI model.
 
 ### `gs models`
-Browse the catalog and connect your providers.
+Browse the catalog and set up your API keys.
 ```shell
 gs models
 ```
 - Use arrow keys to select a **Provider**.
 - Choose a **Model** and press Enter.
-- Follow the instructions to log in (browser) or paste your API key.
+- Paste your API key when prompted.
 - The last model you configure automatically becomes your **default**.
 
 ## Usage
@@ -85,11 +82,11 @@ gs cmt --agent anthropic-claude-3-5-sonnet
 
 **Custom message (skips AI):**
 ```shell
-gs cmt -m "feat: add oauth2 support"
+gs cmt -m "feat: add secure key storage"
 ```
 
 ### `gs auth status`
-Check which providers are currently authenticated.
+Check which providers have keys stored in the keyring.
 ```shell
 gs auth status
 ```
@@ -102,7 +99,7 @@ gs update
 
 ## Security
 
-GitScribe takes security seriously. It uses the `zalando/go-keyring` library to interact with your operating system's native secret management. Your API keys and OAuth tokens are stored in an encrypted state and are only decrypted in memory when making a request to the AI provider.
+GitScribe takes security seriously. It uses the `zalando/go-keyring` library to interact with your operating system's native secret management. Your API keys are stored in an encrypted state and are only decrypted in memory when making a request to the AI provider.
 
 ---
 Built with ❤️ using [Charmbracelet](https://charmbracelet.com/) tools.
