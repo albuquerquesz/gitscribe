@@ -26,7 +26,7 @@ var (
 	newAgentBaseURL  string
 
 	
-	defaultAgentName string
+defaultAgentName string
 )
 
 func init() {

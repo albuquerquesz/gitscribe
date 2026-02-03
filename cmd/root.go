@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 var v string = "v1.0.0"
 
 var rootCmd = &cobra.Command{
