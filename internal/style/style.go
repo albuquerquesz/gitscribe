@@ -68,22 +68,34 @@ func GetASCIIName() {
 
 	lines := strings.Split(ascii, "\n")
 
+	validLines := 0
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			validLines++
+		}
+	}
+
+	lineIndex := 0
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
 			fmt.Println()
 			continue
 		}
 
-		length := len(line)
-		part1 := line[0 : length/3]
-		part2 := line[length/3 : 2*length/3]
-		part3 := line[2*length/3:]
+		colorIndex := 0
+		if validLines > 1 {
+			colorIndex = int(float64(lineIndex) / float64(validLines-1) * float64(len(colors)-1))
+		}
+		if colorIndex >= len(colors) {
+			colorIndex = len(colors) - 1
+		}
 
-		styled := lipgloss.NewStyle().Foreground(lipgloss.Color(colors[0])).Render(part1) +
-			lipgloss.NewStyle().Foreground(lipgloss.Color(colors[1])).Render(part2) +
-			lipgloss.NewStyle().Foreground(lipgloss.Color(colors[2])).Render(part3)
+		styled := lipgloss.NewStyle().
+			Foreground(lipgloss.Color(colors[colorIndex])).
+			Render(line)
 
 		fmt.Println(styled)
+		lineIndex++
 	}
 }
 
