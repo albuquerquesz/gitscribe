@@ -74,6 +74,10 @@ func NewOpenAIClient(profile config.AgentProfile, apiKey string) (*OpenAIClient,
 		if cfg.BaseURL == "" {
 			cfg.BaseURL = "http://localhost:11434/v1"
 		}
+	case config.ProviderOpenCode:
+		if cfg.BaseURL == "" {
+			cfg.BaseURL = "https://api.opencode.com/v1"
+		}
 	}
 
 	client := openai.NewClientWithConfig(cfg)
@@ -192,7 +196,7 @@ func (f *Factory) CreateClient(profile config.AgentProfile) (Client, error) {
 	}
 
 	switch profile.Provider {
-	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama:
+	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama, config.ProviderOpenCode:
 		return NewOpenAIClient(profile, apiKey)
 	case config.ProviderClaude:
 		return NewAnthropicClient(profile, apiKey)
@@ -203,7 +207,7 @@ func (f *Factory) CreateClient(profile config.AgentProfile) (Client, error) {
 
 func (f *Factory) CreateClientWithKey(profile config.AgentProfile, apiKey string) (Client, error) {
 	switch profile.Provider {
-	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama:
+	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama, config.ProviderOpenCode:
 		return NewOpenAIClient(profile, apiKey)
 	case config.ProviderClaude:
 		return NewAnthropicClient(profile, apiKey)
@@ -211,4 +215,3 @@ func (f *Factory) CreateClientWithKey(profile config.AgentProfile, apiKey string
 		return nil, fmt.Errorf("unsupported provider: %s", profile.Provider)
 	}
 }
-

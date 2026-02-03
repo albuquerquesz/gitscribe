@@ -96,7 +96,7 @@ func formatProviderName(p string) string {
 		return "OpenAI"
 	}
 	if pLower == "opencode" {
-		return "OpenCode"
+		return "OpenCode Zen"
 	}
 	if len(p) > 0 {
 		return strings.ToUpper(p[:1]) + strings.ToLower(p[1:])

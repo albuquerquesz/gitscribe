@@ -68,16 +68,20 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 	keyMgr := secrets.NewAgentKeyManager()
 	keyringKey := keyMgr.GetAgentKeyName(profileName)
 
+	pConfig, _ := manager.GetProviderConfig(m.Provider)
+
 	existing, err := cfg.GetAgentByName(profileName)
 	if err == nil {
 		existing.Enabled = true
 		existing.Model = m.ID
+		existing.BaseURL = pConfig.BaseURL
 		existing.KeyringKey = keyringKey
 	} else {
 		newAgent := appconfig.AgentProfile{
 			Name:        profileName,
 			Provider:    appconfig.AgentProvider(m.Provider),
 			Model:       m.ID,
+			BaseURL:     pConfig.BaseURL,
 			Enabled:     true,
 			Priority:    1,
 			Temperature: 0.7,

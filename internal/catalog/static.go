@@ -22,10 +22,22 @@ var StaticModels = []Model{
 		Name:     "GPT-4o Mini",
 	},
 	{
-		ID:          "zen",
+		ID:          "kimi-2.5",
 		Provider:    "opencode",
-		Name:        "OpenCode Zen",
-		Description: "High-performance coding model",
+		Name:        "Kimi 2.5",
+		Description: "Long context specialist from OpenCode Zen",
+	},
+	{
+		ID:          "mini-pickle",
+		Provider:    "opencode",
+		Name:        "Mini Pickle",
+		Description: "Fast and lightweight coding assistant",
+	},
+	{
+		ID:          "glm",
+		Provider:    "opencode",
+		Name:        "GLM",
+		Description: "Powerful General Language Model",
 	},
 	{
 		ID:       "llama-3.3-70b-versatile",

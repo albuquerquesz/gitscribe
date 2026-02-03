@@ -18,7 +18,7 @@ type AgentProvider string
 const (
 	ProviderOpenAI     AgentProvider = "openai"
 	ProviderGroq       AgentProvider = "groq"
-	ProviderClaude     AgentProvider = "claude"
+	ProviderClaude     AgentProvider = "anthropic"
 	ProviderGemini     AgentProvider = "gemini"
 	ProviderOllama     AgentProvider = "ollama"
 	ProviderOpenRouter AgentProvider = "openrouter"
