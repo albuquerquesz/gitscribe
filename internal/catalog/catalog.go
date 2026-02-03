@@ -35,9 +35,9 @@ var DefaultModels = []ModelInfo{
 		AuthType:    AuthTypeOAuth,
 	},
 	{
-		ID:          "opencode-zen",
+		ID:          "zen",
 		Name:        "OpenCode Zen",
-		Provider:    config.ProviderOpenRouter,
+		Provider:    config.ProviderOpenCode,
 		Description: "Optimized for coding tasks",
 		AuthType:    AuthTypeAPIKey,
 	},

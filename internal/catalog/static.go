@@ -22,9 +22,10 @@ var StaticModels = []Model{
 		Name:     "GPT-4o Mini",
 	},
 	{
-		ID:       "zed",
-		Provider: "opencode",
-		Name:     "OpenCode Zed",
+		ID:          "zen",
+		Provider:    "opencode",
+		Name:        "OpenCode Zen",
+		Description: "High-performance coding model",
 	},
 	{
 		ID:       "llama-3.3-70b-versatile",

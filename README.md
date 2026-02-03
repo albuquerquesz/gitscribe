@@ -20,7 +20,7 @@ GitScribe analyzes your staged changes and generates Conventional Commit message
 
 ## Features
 
--   **Multi-Agent Support**: Choose between OpenAI (GPT-4o), Anthropic (Claude 3.5), OpenCode (Zed), or Groq (Llama 3.3).
+-   **Multi-Agent Support**: Choose between OpenAI (GPT-4o), Anthropic (Claude 3.5), OpenCode (Zen), or Groq (Llama 3.3).
 -   **Hybrid Authentication**: 
     -   **OAuth2**: Seamless login via browser for OpenAI and Anthropic.
     -   **API Keys**: Manual secure entry for providers like OpenCode and Groq.
