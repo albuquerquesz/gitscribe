@@ -23,11 +23,39 @@ var (
 
 	BoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("62")).
+			BorderForeground(lipgloss.Color("62")),
 			Padding(1, 2).
 			MarginTop(1).
 			MarginBottom(1)
 )
+
+type SimpleSpinner struct {
+	message string
+}
+
+func (s *SimpleSpinner) Stop() {
+}
+
+func (s *SimpleSpinner) Success(msg string) {
+	fmt.Println(SuccessStyle.Render("✓ " + msg))
+}
+
+func (s *SimpleSpinner) Fail(msg string) {
+	fmt.Println(ErrorStyle.Render("✖ " + msg))
+}
+
+func (s *SimpleSpinner) Warning(msg string) {
+	fmt.Println(WarningStyle.Render("⚠ " + msg))
+}
+
+func (s *SimpleSpinner) UpdateText(msg string) {
+	s.message = msg
+}
+
+func Spinner(msg string) *SimpleSpinner {
+	fmt.Printf("⏳ %s...\n", msg)
+	return &SimpleSpinner{message: msg}
+}
 
 func ConfirmAction(msg string) bool {
 	var confirm bool
@@ -46,55 +74,49 @@ func GetASCIIName() {
            /$$   /$$                                  /$$ /$$ 
           |__/  | $$
   /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
- /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$ 
-| $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$ 
-| $$  | $$| $$  | $$ /$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/ 
-|  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$ 
- \____  $$|__/   \___/ |_______/  \_______/|__/      |__/|_______/  \_______/ 
+ /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$
+| $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$
+| $$  | $$| $$  | $$ /$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
+|  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$
+ \____  $$|__/   \___/ |_______/  \_______/|__/      |__/|_______/  \_______/
  /$$  \ $$
-|  $$$$$$/
+|  $$$$$$
  \______/
 `
 	fmt.Println(SuccessStyle.Render(ascii))
 	time.Sleep(500 * time.Millisecond)
 }
 
-func GroupedSelect(title string, groups map[string][]huh.Option[string]) (string, error) {
-	var options []huh.Option[string]
+func formatProviderName(p string) string {
+	pLower := strings.ToLower(p)
+	if pLower == "groq" {
+		return "GROQ"
+	}
+	if pLower == "openai" {
+		return "OpenAI"
+	}
+	if pLower == "opencode" {
+		return "OpenCode"
+	}
+	if len(p) > 0 {
+		return strings.ToUpper(p[:1]) + strings.ToLower(p[1:])
+	}
+	return p
+}
 
-	providers := []string{"openai", "anthropic", "groq", "opencode", "ollama"}
-
-	for _, p := range providers {
-		models, ok := groups[p]
-		if !ok || len(models) == 0 {
+func getModelOptions(manager *catalog.CatalogManager, provider string) []huh.Option[string] {
+	models := manager.GetModelsByProvider(provider)
+	var opts []huh.Option[string]
+	for _, mod := range models {
+		if !mod.IsAvailable() {
 			continue
 		}
-
-		options = append(options, huh.NewOption(ProviderHeaderStyle.Render("── "+strings.ToUpper(p)+" ──"), "header:"+p))
-
-		for _, opt := range models {
-			label := ModelItemStyle.Render(opt.Key)
-			options = append(options, huh.NewOption(label, opt.Value))
-		}
+		opts = append(opts, huh.NewOption(mod.Name, mod.ID))
 	}
-
-	var selected string
-	for {
-		err := huh.NewSelect[string]().
-			Title(title).
-			Options(options...).
-			Value(&selected).
-			Run()
-		if err != nil {
-			return "", err
-		}
-
-		if strings.HasPrefix(selected, "header:") {
-			continue
-		}
-
-		return selected, nil
+	if len(opts) == 0 {
+		opts = append(opts, huh.NewOption("No models available", ""))
 	}
+	return opts
 }
 
 func SelectModel(manager *catalog.CatalogManager) (*catalog.Model, error) {
@@ -175,4 +197,3 @@ func Box(title, content string) {
 func InteractiveConfirm(msg string) bool {
 	return ConfirmAction(msg)
 }
-
