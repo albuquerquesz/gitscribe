@@ -44,7 +44,9 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 	apiKey, err := auth.LoadAPIKey(m.Provider)
 	isAuthenticated := err == nil && apiKey != ""
 
-	if !isAuthenticated {
+	if isAuthenticated {
+		style.Success(fmt.Sprintf("Authentication found for %s.", m.Provider))
+	} else {
 		style.Info(fmt.Sprintf("Model %s from %s requires authentication.", m.Name, m.Provider))
 
 		if m.Provider == "openai" || m.Provider == "anthropic" {
@@ -62,8 +64,6 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 				return err
 			}
 		}
-	} else {
-		style.Success(fmt.Sprintf("Authentication found for %s.", m.Provider))
 	}
 
 	cfg, err := appconfig.Load()
@@ -80,12 +80,7 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 	keyringKey := keyMgr.GetAgentKeyName(profileName)
 
 	existing, err := cfg.GetAgentByName(profileName)
-	if err == nil {
-		existing.Enabled = true
-		existing.Model = m.ID
-		existing.KeyringKey = keyringKey
-		style.Info(fmt.Sprintf("Updated existing agent profile: %s", profileName))
-	} else {
+	if err != nil {
 		newAgent := appconfig.AgentProfile{
 			Name:        profileName,
 			Provider:    appconfig.AgentProvider(m.Provider),
@@ -101,6 +96,11 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 			return fmt.Errorf("failed to add agent: %w", err)
 		}
 		style.Success(fmt.Sprintf("Created new agent profile: %s", profileName))
+	} else {
+		existing.Enabled = true
+		existing.Model = m.ID
+		existing.KeyringKey = keyringKey
+		style.Info(fmt.Sprintf("Updated existing agent profile: %s", profileName))
 	}
 
 	providerKey, err := auth.LoadAPIKey(m.Provider)

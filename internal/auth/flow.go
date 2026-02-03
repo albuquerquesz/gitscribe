@@ -50,13 +50,13 @@ func (f *Flow) Run(ctx context.Context) (*TokenResponse, string, error) {
 
 	authURL := f.buildAuthorizationURL(provider, pkce.Challenge, state, redirectURL)
 
-	if f.config.OpenBrowser && CanOpenBrowser() {
+	if !f.config.OpenBrowser || !CanOpenBrowser() {
+		fmt.Printf("\nPlease visit this URL to authorize:\n%s\n\n", authURL)
+	} else {
 		browser := NewBrowserOpener()
 		if err := browser.Open(authURL); err != nil {
 			fmt.Printf("Warning: Could not open browser automatically\n")
 		}
-	} else {
-		fmt.Printf("\nPlease visit this URL to authorize:\n%s\n\n", authURL)
 	}
 
 	fmt.Println("Waiting for authentication...")
@@ -164,13 +164,13 @@ func RefreshIfNeeded(ctx context.Context, provider Provider) (*TokenResponse, er
 
 	if !token.NeedsRefresh() {
 		return &TokenResponse{
-			AccessToken:  token.AccessToken,
-			TokenType:    token.TokenType,
-			ExpiresAt:    token.ExpiresAt,
-			RefreshToken: token.RefreshToken,
-			Scope:        token.Scope,
-		},
-		nil
+				AccessToken:  token.AccessToken,
+				TokenType:    token.TokenType,
+				ExpiresAt:    token.ExpiresAt,
+				RefreshToken: token.RefreshToken,
+				Scope:        token.Scope,
+			},
+			nil
 	}
 
 	if token.RefreshToken == "" {

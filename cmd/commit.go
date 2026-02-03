@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var msg, branch string
+var msg, branch, commitAgent string
 
 var commitCmd = &cobra.Command{
 	Use:   "cmt [files]",
@@ -24,6 +24,7 @@ var commitCmd = &cobra.Command{
 func init() {
 	commitCmd.Flags().StringVarP(&msg, "message", "m", "", "The commit message")
 	commitCmd.Flags().StringVarP(&branch, "branch", "b", "", "The branch to push to")
+	commitCmd.Flags().StringVarP(&commitAgent, "agent", "a", "", "The AI agent to use (overrides default)")
 
 	rootCmd.AddCommand(commitCmd)
 }
@@ -57,7 +58,7 @@ func commit(files []string) error {
 			return nil
 		}
 
-		result, err := ai.SendPrompt(diff)
+		result, err := ai.SendPrompt(diff, commitAgent)
 		if err != nil {
 			aiSpinner.Fail(fmt.Sprintf("Error generating message with AI: %v", err))
 			return err

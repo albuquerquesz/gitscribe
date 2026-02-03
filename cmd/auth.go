@@ -81,7 +81,7 @@ func init() {
 	authCmd.Flags().DurationVar(&authTimeout, "timeout", 5*time.Minute, "OAuth flow timeout")
 
 	authLogoutCmd.Flags().StringVarP(&authProvider, "provider", "p", "anthropic", "Provider to logout from")
-	
+
 	authSetKeyCmd.Flags().StringVarP(&authProvider, "provider", "p", "", "Provider to set the key for")
 	authSetKeyCmd.MarkFlagRequired("provider")
 
@@ -93,7 +93,7 @@ func init() {
 
 func runSetKey() error {
 	fmt.Printf("Enter API key for %s: ", authProvider)
-	
+
 	byteKey, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return fmt.Errorf("failed to read password: %w", err)
@@ -105,12 +105,10 @@ func runSetKey() error {
 		return fmt.Errorf("API key cannot be empty")
 	}
 
-	
 	if err := auth.StoreAPIKey(authProvider, apiKey); err != nil {
 		return fmt.Errorf("failed to store API key: %w", err)
 	}
 
-	
 	if err := updateAgentProfile(authProvider, apiKey); err != nil {
 		fmt.Printf("Warning: Could not update agent profile: %v\n", err)
 	}
@@ -134,7 +132,6 @@ func runAuth() error {
 		return fmt.Errorf("unsupported provider: %s", authProvider)
 	}
 
-	
 	isAuth, err := auth.IsAuthenticated(provider.Name())
 	if err != nil {
 		fmt.Printf("Warning: Could not check authentication status: %v\n", err)
@@ -148,7 +145,6 @@ func runAuth() error {
 	fmt.Printf("Authenticating with %s...\n", provider.Name())
 	fmt.Println("Scopes requested:", provider.Scopes())
 
-	
 	flowConfig := &auth.FlowConfig{
 		Provider:    provider,
 		RedirectURL: fmt.Sprintf("http://localhost:%d/callback", authPort),
@@ -157,7 +153,6 @@ func runAuth() error {
 		OpenBrowser: !authNoBrowser,
 	}
 
-	
 	flow := auth.NewFlow(flowConfig)
 	ctx := context.Background()
 
@@ -166,7 +161,6 @@ func runAuth() error {
 		return fmt.Errorf("authentication failed: %w", err)
 	}
 
-	
 	storage, err := auth.NewTokenStorage()
 	if err != nil {
 		return fmt.Errorf("failed to initialize token storage: %w", err)
@@ -176,12 +170,10 @@ func runAuth() error {
 		return fmt.Errorf("failed to save tokens: %w", err)
 	}
 
-	
 	if err := auth.StoreAPIKey(provider.Name(), apiKey); err != nil {
 		return fmt.Errorf("failed to store API key: %w", err)
 	}
 
-	
 	if err := updateAgentProfile(provider.Name(), apiKey); err != nil {
 		fmt.Printf("Warning: Could not update agent profile: %v\n", err)
 	}
@@ -220,12 +212,10 @@ func logout() error {
 		return fmt.Errorf("failed to initialize token storage: %w", err)
 	}
 
-	
 	if err := storage.DeleteToken(authProvider); err != nil {
 		fmt.Printf("Warning: Could not delete tokens: %v\n", err)
 	}
 
-	
 	if err := auth.DeleteAPIKey(authProvider); err != nil {
 		fmt.Printf("Warning: Could not delete API key: %v\n", err)
 	}
@@ -235,13 +225,12 @@ func logout() error {
 }
 
 func updateAgentProfile(providerName, apiKey string) error {
-	
+
 	cfg, err := appconfig.Load()
 	if err != nil {
 		return err
 	}
 
-	
 	keyringKey := fmt.Sprintf("%s-oauth-api-key", providerName)
 
 	for i := range cfg.Agents {
@@ -249,7 +238,6 @@ func updateAgentProfile(providerName, apiKey string) error {
 			cfg.Agents[i].KeyringKey = keyringKey
 			cfg.Agents[i].Enabled = true
 
-			
 			if err := auth.StoreAPIKey(keyringKey, apiKey); err != nil {
 				return fmt.Errorf("failed to store API key for agent: %w", err)
 			}
