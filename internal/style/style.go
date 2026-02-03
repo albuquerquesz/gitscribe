@@ -3,7 +3,6 @@ package style
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/albuquerquesz/gitscribe/internal/catalog"
 	"github.com/charmbracelet/huh"
@@ -11,26 +10,25 @@ import (
 )
 
 var (
-	Purple = lipgloss.Color("#7D56F4")
-	Green  = lipgloss.Color("#04B575")
-	Red    = lipgloss.Color("#EF4444")
-	Amber  = lipgloss.Color("#F59E0B")
-	Blue   = lipgloss.Color("#3B82F6")
-	Grey   = lipgloss.Color("#6B7280")
+	White     = lipgloss.Color("#FFFFFF")
+	LightGrey = lipgloss.Color("#E8E8E8")
+	Grey      = lipgloss.Color("#A0A0A0")
+	DarkGrey  = lipgloss.Color("#505050")
+	Black     = lipgloss.Color("#000000")
 
-	SuccessStyle = lipgloss.NewStyle().Foreground(Green).Bold(true)
-	ErrorStyle   = lipgloss.NewStyle().Foreground(Red).Bold(true)
-	InfoStyle    = lipgloss.NewStyle().Foreground(Blue)
-	WarningStyle = lipgloss.NewStyle().Foreground(Amber)
-	TitleStyle   = lipgloss.NewStyle().Foreground(Purple).Bold(true).MarginBottom(1)
+	SuccessStyle = lipgloss.NewStyle().Foreground(Grey)
+	ErrorStyle   = lipgloss.NewStyle().Foreground(DarkGrey)
+	InfoStyle    = lipgloss.NewStyle().Foreground(LightGrey)
+	WarningStyle = lipgloss.NewStyle().Foreground(Grey)
+	TitleStyle   = lipgloss.NewStyle().Foreground(White).Bold(true).MarginBottom(1)
 
-	ProviderHeaderStyle = lipgloss.NewStyle().Foreground(Purple).Bold(true).PaddingLeft(1)
+	ProviderHeaderStyle = lipgloss.NewStyle().Foreground(Grey).Bold(true).PaddingLeft(1)
 	ModelItemStyle      = lipgloss.NewStyle().PaddingLeft(4)
 	DimStyle            = lipgloss.NewStyle().Foreground(Grey)
 
 	BoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(Purple).
+			BorderForeground(DarkGrey).
 			Padding(1, 2).
 			MarginTop(1).
 			MarginBottom(1)
@@ -50,66 +48,43 @@ func ConfirmAction(msg string) bool {
 
 func GetASCIIName() {
 	ascii := `
-           /$$   /$$                                  /$$ /$$ 
-          |__/  | $$                                 | $$|__/
+           /$$   /$$                                  /$$ /$$                
+          |__/  | $$                                 |__/| $$                
   /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
  /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$
 | $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$$
 | $$  | $$| $$  | $$ /$$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
 |  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$
  \____  $$|__/   \___/ |_______/  \_______/|__/      |__/|_______/  \_______/
- /$$  \ $$
-| $$    | $$
-| $$$$$$$$/
-|_______/                                                                    
-`
+ /$$  \ $$                                                                   
+|  $$$$$$/                                                                   
+ \______/                                                                    `
 
-	// Paleta cinza/preto: Branco → Cinza claro → Cinza → Cinza escuro → Preto
 	colors := []string{
-		"#FFFFFF", // Branco puro
-		"#E8E8E8", // Cinza muito claro
-		"#C0C0C0", // Cinza claro
-		"#989898", // Cinza médio-claro
-		"#707070", // Cinza médio
-		"#484848", // Cinza escuro
-		"#202020", // Cinza muito escuro
-		"#000000", // Preto
+		"#FFFFFF",
+		"#A0A0A0",
+		"#505050",
 	}
 
 	lines := strings.Split(ascii, "\n")
 
-	// Filtrar linhas vazias no início e fim
-	var validLines []int
-	for i, line := range lines {
-		if strings.TrimSpace(line) != "" {
-			validLines = append(validLines, i)
-		}
-	}
-
-	// Animação: mostrar linha por linha de cima para baixo
-	for idx, lineIdx := range validLines {
-		line := lines[lineIdx]
-
-		// Calcular cor baseado na posição
-		colorProgress := float64(idx) / float64(len(validLines)-1)
-		colorIndex := int(colorProgress * float64(len(colors)-1))
-		if colorIndex >= len(colors) {
-			colorIndex = len(colors) - 1
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			fmt.Println()
+			continue
 		}
 
-		c := colors[colorIndex]
-		styledLine := lipgloss.NewStyle().
-			Foreground(lipgloss.Color(c)).
-			Bold(true).
-			Render(line)
+		length := len(line)
+		part1 := line[0 : length/3]
+		part2 := line[length/3 : 2*length/3]
+		part3 := line[2*length/3:]
 
-		fmt.Println(styledLine)
+		styled := lipgloss.NewStyle().Foreground(lipgloss.Color(colors[0])).Render(part1) +
+			lipgloss.NewStyle().Foreground(lipgloss.Color(colors[1])).Render(part2) +
+			lipgloss.NewStyle().Foreground(lipgloss.Color(colors[2])).Render(part3)
 
-		// Delay para efeito de "escorrer"
-		time.Sleep(80 * time.Millisecond)
+		fmt.Println(styled)
 	}
-
-	time.Sleep(200 * time.Millisecond)
 }
 
 func SelectModel(manager *catalog.CatalogManager) (*catalog.Model, error) {

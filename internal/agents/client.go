@@ -188,7 +188,7 @@ func (f *Factory) CreateClient(profile config.AgentProfile) (Client, error) {
 		return nil, fmt.Errorf("no API key found for agent %s (provider: %s). Configure with 'gs auth set-key -p %s' or set %s environment variable",
 			profile.Name, profile.Provider, profile.Provider, getEnvKeyForProvider(profile.Provider))
 	}
-	_ = source // Can be used for logging/debugging
+	_ = source
 
 	switch profile.Provider {
 	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama, config.ProviderOpenCode:
