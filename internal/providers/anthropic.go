@@ -69,6 +69,10 @@ func (a *AnthropicProvider) ExtraParams() map[string]string {
 	}
 }
 
+func (a *AnthropicProvider) CallbackPath() string {
+	return "/auth/callback"
+}
+
 func (a *AnthropicProvider) GenerateAPIKey(ctx context.Context, accessToken string) (string, error) {
 	reqBody := APIKeyRequest{
 		Name: "gitscribe-cli-auto-generated",
@@ -134,16 +138,6 @@ type APIKeyResponse struct {
 	CreatedBy string    `json:"created_by"`
 }
 
-func (a *AnthropicProvider) CallbackPath() string {
-
-	return "/oauth/code/callback"
-
-}
-
-
-
 var _ auth.Provider = (*AnthropicProvider)(nil)
-
 var _ auth.ExtraParamsProvider = (*AnthropicProvider)(nil)
-
 var _ auth.CallbackPathProvider = (*AnthropicProvider)(nil)

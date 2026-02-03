@@ -60,6 +60,7 @@ func NewCallbackServer(preferredPort int) (*CallbackServer, int, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", cs.handleCallback)
 	mux.HandleFunc("/auth/callback", cs.handleCallback)
+	mux.HandleFunc("/oauth/code/callback", cs.handleCallback)
 	mux.HandleFunc("/health", cs.handleHealth)
 	server.Handler = mux
 

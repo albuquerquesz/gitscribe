@@ -47,36 +47,58 @@ func (f *Flow) Run(ctx context.Context) (*TokenResponse, string, error) {
 	}
 
 	redirectURL := fmt.Sprintf("http://localhost:%d%s", port, callbackPath)
-
 	authURL := f.buildAuthorizationURL(provider, pkce.Challenge, state, redirectURL)
 
-	if !f.config.OpenBrowser || !CanOpenBrowser() {
-		fmt.Printf("\nPlease visit this URL to authorize:\n%s\n\n", authURL)
-	} else {
+	if f.config.OpenBrowser && CanOpenBrowser() {
 		browser := NewBrowserOpener()
 		if err := browser.Open(authURL); err != nil {
 			fmt.Printf("Warning: Could not open browser automatically\n")
 		}
+	} else {
+		fmt.Printf("\nPlease visit this URL to authorize:\n%s\n\n", authURL)
 	}
 
-	fmt.Println("Waiting for authentication...")
+	fmt.Println("\nWaiting for authentication...")
+	fmt.Println("Tip: If the browser doesn't redirect back, copy the 'code' from the URL and paste it here.")
 
-	callbackCtx, cancel := context.WithTimeout(ctx, f.config.Timeout)
-	defer cancel()
+	resultChan := make(chan *CallbackResult, 1)
+	errChan := make(chan error, 1)
 
-	result, err := server.WaitForCallback(callbackCtx)
-	if err != nil {
+	go func() {
+		res, err := server.WaitForCallback(ctx)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		resultChan <- res
+	}()
+
+	go func() {
+		fmt.Print("Enter Authorization Code: ")
+		var code string
+		fmt.Scanln(&code)
+		if code != "" {
+			resultChan <- &CallbackResult{Code: code}
+		}
+	}()
+
+	var result *CallbackResult
+	select {
+	case result = <-resultChan:
+	case err := <-errChan:
 		if err == context.DeadlineExceeded {
 			return nil, "", ErrTimeout
 		}
 		return nil, "", fmt.Errorf("failed to receive callback: %w", err)
+	case <-ctx.Done():
+		return nil, "", ctx.Err()
 	}
 
 	if result.Error != "" {
 		return nil, "", fmt.Errorf("OAuth error: %s", result.Error)
 	}
 
-	fmt.Println("Exchanging authorization code for tokens...")
+	fmt.Println("\nExchanging authorization code for tokens...")
 
 	tokenCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -164,12 +186,12 @@ func RefreshIfNeeded(ctx context.Context, provider Provider) (*TokenResponse, er
 
 	if !token.NeedsRefresh() {
 		return &TokenResponse{
-				AccessToken:  token.AccessToken,
-				TokenType:    token.TokenType,
-				ExpiresAt:    token.ExpiresAt,
-				RefreshToken: token.RefreshToken,
-				Scope:        token.Scope,
-			},
+			AccessToken:  token.AccessToken,
+			TokenType:    token.TokenType,
+			ExpiresAt:    token.ExpiresAt,
+			RefreshToken: token.RefreshToken,
+			Scope:        token.Scope,
+		},
 			nil
 	}
 
