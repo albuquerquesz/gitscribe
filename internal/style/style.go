@@ -8,7 +8,6 @@ import (
 	"github.com/albuquerquesz/gitscribe/internal/catalog"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/lucasb-eyer/go-colorful"
 )
 
 var (
@@ -37,34 +36,6 @@ var (
 			MarginBottom(1)
 )
 
-type SimpleSpinner struct {
-	message string
-}
-
-func (s *SimpleSpinner) Stop() {
-}
-
-func (s *SimpleSpinner) Success(msg string) {
-	fmt.Println(SuccessStyle.Render("✓ " + msg))
-}
-
-func (s *SimpleSpinner) Fail(msg string) {
-	fmt.Println(ErrorStyle.Render("✖ " + msg))
-}
-
-func (s *SimpleSpinner) Warning(msg string) {
-	fmt.Println(WarningStyle.Render("⚠ " + msg))
-}
-
-func (s *SimpleSpinner) UpdateText(msg string) {
-	s.message = msg
-}
-
-func Spinner(msg string) *SimpleSpinner {
-	fmt.Printf("⏳ %s...\n", msg)
-	return &SimpleSpinner{message: msg}
-}
-
 func ConfirmAction(msg string) bool {
 	var confirm bool
 	err := huh.NewConfirm().
@@ -80,60 +51,65 @@ func ConfirmAction(msg string) bool {
 func GetASCIIName() {
 	ascii := `
            /$$   /$$                                  /$$ /$$ 
-          |__/  | $$
+          |__/  | $$                                 | $$|__/
   /$$$$$$  /$$ /$$$$$$   /$$$$$$$  /$$$$$$$  /$$$$$$  /$$| $$$$$$$   /$$$$$$ 
  /$$__  $$| $$|_  $$_/  /$$_____/ /$$_____/ /$$__  $$| $$| $$__  $$ /$$__  $$
-| $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$
-| $$  | $$| $$  | $$ /$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
+| $$  \ $$| $$  | $$   |  $$$$$$ | $$      | $$  \__/| $$| $$  \ $$| $$$$$$$$
+| $$  | $$| $$  | $$ /$$\____  $$| $$      | $$      | $$| $$  | $$| $$_____/
 |  $$$$$$$| $$  |  $$$$//$$$$$$$/|  $$$$$$$| $$      | $$| $$$$$$$/|  $$$$$$$
  \____  $$|__/   \___/ |_______/  \_______/|__/      |__/|_______/  \_______/
  /$$  \ $$
-|  $$$$$$
- \______/
+| $$    | $$
+| $$$$$$$$/
+|_______/                                                                    
 `
+
+	// Paleta cinza/preto: Branco → Cinza claro → Cinza → Cinza escuro → Preto
+	colors := []string{
+		"#FFFFFF", // Branco puro
+		"#E8E8E8", // Cinza muito claro
+		"#C0C0C0", // Cinza claro
+		"#989898", // Cinza médio-claro
+		"#707070", // Cinza médio
+		"#484848", // Cinza escuro
+		"#202020", // Cinza muito escuro
+		"#000000", // Preto
+	}
+
 	lines := strings.Split(ascii, "\n")
-	startColor, _ := colorful.Hex("#00BFFF")
-	endColor, _ := colorful.Hex("#7D56F4")
 
+	// Filtrar linhas vazias no início e fim
+	var validLines []int
 	for i, line := range lines {
-		if strings.TrimSpace(line) == "" {
-			fmt.Println()
-			continue
+		if strings.TrimSpace(line) != "" {
+			validLines = append(validLines, i)
 		}
-		t := float64(i) / float64(len(lines)-1)
-		c := startColor.BlendLuv(endColor, t).Hex()
-		fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color(c)).Render(line))
 	}
-	time.Sleep(500 * time.Millisecond)
-}
 
-func formatProviderName(p string) string {
-	pLower := strings.ToLower(p)
-	if pLower == "groq" {
-		return "GROQ"
-	}
-	if pLower == "openai" {
-		return "OpenAI"
-	}
-	if pLower == "opencode" {
-		return "OpenCode Zen"
-	}
-	if len(p) > 0 {
-		return strings.ToUpper(p[:1]) + strings.ToLower(p[1:])
-	}
-	return p
-}
+	// Animação: mostrar linha por linha de cima para baixo
+	for idx, lineIdx := range validLines {
+		line := lines[lineIdx]
 
-func getModelOptions(manager *catalog.CatalogManager, provider string) []huh.Option[string] {
-	models := manager.GetModelsByProvider(provider)
-	var opts []huh.Option[string]
-	for _, mod := range models {
-		opts = append(opts, huh.NewOption(mod.Name, mod.ID))
+		// Calcular cor baseado na posição
+		colorProgress := float64(idx) / float64(len(validLines)-1)
+		colorIndex := int(colorProgress * float64(len(colors)-1))
+		if colorIndex >= len(colors) {
+			colorIndex = len(colors) - 1
+		}
+
+		c := colors[colorIndex]
+		styledLine := lipgloss.NewStyle().
+			Foreground(lipgloss.Color(c)).
+			Bold(true).
+			Render(line)
+
+		fmt.Println(styledLine)
+
+		// Delay para efeito de "escorrer"
+		time.Sleep(80 * time.Millisecond)
 	}
-	if len(opts) == 0 {
-		opts = append(opts, huh.NewOption("No models available", ""))
-	}
-	return opts
+
+	time.Sleep(200 * time.Millisecond)
 }
 
 func SelectModel(manager *catalog.CatalogManager) (*catalog.Model, error) {
