@@ -8,22 +8,30 @@ import (
 	"github.com/albuquerquesz/gitscribe/internal/catalog"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lucasb-eyer/go-colorful"
 )
 
 var (
-	SuccessStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Bold(true)
-	ErrorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Bold(true)
-	InfoStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("39"))
-	WarningStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("208"))
-	TitleStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("99")).Bold(true).MarginBottom(1)
+	Purple = lipgloss.Color("#7D56F4")
+	Green  = lipgloss.Color("#04B575")
+	Red    = lipgloss.Color("#EF4444")
+	Amber  = lipgloss.Color("#F59E0B")
+	Blue   = lipgloss.Color("#3B82F6")
+	Grey   = lipgloss.Color("#6B7280")
 
-	ProviderHeaderStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("99")).Bold(true).PaddingLeft(1)
+	SuccessStyle = lipgloss.NewStyle().Foreground(Green).Bold(true)
+	ErrorStyle   = lipgloss.NewStyle().Foreground(Red).Bold(true)
+	InfoStyle    = lipgloss.NewStyle().Foreground(Blue)
+	WarningStyle = lipgloss.NewStyle().Foreground(Amber)
+	TitleStyle   = lipgloss.NewStyle().Foreground(Purple).Bold(true).MarginBottom(1)
+
+	ProviderHeaderStyle = lipgloss.NewStyle().Foreground(Purple).Bold(true).PaddingLeft(1)
 	ModelItemStyle      = lipgloss.NewStyle().PaddingLeft(4)
-	DimStyle            = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	DimStyle            = lipgloss.NewStyle().Foreground(Grey)
 
 	BoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("62")).
+			BorderForeground(Purple).
 			Padding(1, 2).
 			MarginTop(1).
 			MarginBottom(1)
@@ -83,7 +91,19 @@ func GetASCIIName() {
 |  $$$$$$
  \______/
 `
-	fmt.Println(SuccessStyle.Render(ascii))
+	lines := strings.Split(ascii, "\n")
+	startColor, _ := colorful.Hex("#00BFFF")
+	endColor, _ := colorful.Hex("#7D56F4")
+
+	for i, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			fmt.Println()
+			continue
+		}
+		t := float64(i) / float64(len(lines)-1)
+		c := startColor.BlendLuv(endColor, t).Hex()
+		fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color(c)).Render(line))
+	}
 	time.Sleep(500 * time.Millisecond)
 }
 

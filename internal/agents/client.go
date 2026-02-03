@@ -3,6 +3,7 @@ package agents
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/albuquerquesz/gitscribe/internal/config"
@@ -57,29 +58,23 @@ func NewOpenAIClient(profile config.AgentProfile, apiKey string) (*OpenAIClient,
 
 	cfg := openai.DefaultConfig(apiKey)
 
-	if profile.BaseURL != "" {
-		cfg.BaseURL = profile.BaseURL
-	}
-
-	switch profile.Provider {
-	case config.ProviderGroq:
-		if cfg.BaseURL == "" {
-			cfg.BaseURL = "https://api.groq.com/openai/v1"
-		}
-	case config.ProviderOpenRouter:
-		if cfg.BaseURL == "" {
-			cfg.BaseURL = "https://openrouter.ai/api/v1"
-		}
-	case config.ProviderOllama:
-		if cfg.BaseURL == "" {
-			cfg.BaseURL = "http://localhost:11434/v1"
-		}
-	case config.ProviderOpenCode:
-		if cfg.BaseURL == "" {
-			cfg.BaseURL = "https://api.opencode.com/v1"
+	baseURL := profile.BaseURL
+	if baseURL == "" {
+		switch profile.Provider {
+		case config.ProviderGroq:
+			baseURL = "https://api.groq.com/openai/v1"
+		case config.ProviderOpenRouter:
+			baseURL = "https://openrouter.ai/api/v1"
+		case config.ProviderOllama:
+			baseURL = "http://localhost:11434/v1"
+		case config.ProviderOpenCode:
+			baseURL = "https://api.opencode.com/v1"
+		default:
+			baseURL = "https://api.openai.com/v1"
 		}
 	}
 
+	cfg.BaseURL = strings.TrimSuffix(baseURL, "/")
 	client := openai.NewClientWithConfig(cfg)
 
 	return &OpenAIClient{
