@@ -1,3 +1,5 @@
+# GitScribe (gs)
+
 ```shell
            /$$   /$$                                  /$$ /$$
           |__/  | $$
@@ -10,106 +12,97 @@
  /$$  \ $$
 |  $$$$$$/
  \______/
-
 ```
 
-**Your AI-powered git commit assistant.**
+**Your AI-powered multi-agent git assistant.**
 
-gitscribe analyzes your staged changes and generates conventional commit messages for you, making it easier to maintain a clean and informative git history.
+GitScribe analyzes your staged changes and generates Conventional Commit messages using your preferred AI model. It manages multiple providers and keeps your credentials safe using your system's secure keyring.
 
 ## Features
 
--   **AI-Powered Commits**: Automatically generates commit messages based on your staged changes using AI.
--   **Conventional Commits**: Enforces the Conventional Commits specification for consistent and readable history.
--   **All-in-One Command**: Stage, commit, and push your changes with a single command.
--   **Automatic Updates**: Stay up-to-date with the latest version with built-in update notifications and command.
+-   **Multi-Agent Support**: Choose between OpenAI (GPT-4o), Anthropic (Claude 3.5), OpenCode (Zed), or Groq (Llama 3.3).
+-   **Hybrid Authentication**: 
+    -   **OAuth2**: Seamless login via browser for OpenAI and Anthropic.
+    -   **API Keys**: Manual secure entry for providers like OpenCode and Groq.
+-   **Secure Storage**: Credentials are encrypted and stored in your **OS Keyring** (Keychain, Gnome Keyring, etc.), never in plain text.
+-   **Interactive Selection**: Easily browse and enable models with a polished TUI.
+-   **All-in-One Workflow**: Stage, commit, and push with a single command.
 
 ## Installation
 
-You can install gitscribe in two ways:
-
-### From GitHub Releases (Recommended for most users)
+### From GitHub Releases (Recommended)
 
 #### Linux
-
-1.  Go to the [latest release page](https://github.com/albuquerquesz/gitscribe/releases/latest).
-2.  Download the binary for your operating system and architecture (e.g., `gs_linux_amd64.tar.gz`).
-3.  Extract the archive. You will find a binary file named `gs`.
+1.  Download the binary from the [latest release](https://github.com/albuquerquesz/gitscribe/releases/latest).
+2.  Extract and move to your path:
     ```shell
     tar -xzf gs_linux_amd64.tar.gz
-    ```
-4.  Move the `gs` binary to a directory in your system's `PATH`. For example:
-    ```shell
     sudo mv gs /usr/local/bin/
-    ```
-5.  Verify the installation by running:
-    ```shell
-    gs --version
     ```
 
 #### Windows
+1.  Download `gs_windows_amd64.tar.gz` from the [releases page](https://github.com/albuquerquesz/gitscribe/releases/latest).
+2.  Extract `gs.exe` and add it to your system `PATH`.
 
-1.  Go to the [latest release page](https://github.com/albuquerquesz/gitscribe/releases/latest).
-2.  Download the binary for your operating system and architecture (e.g., `gs_windows_amd64.tar.gz`).
-3.  Extract the archive. You will find a binary file named `gs.exe`. You can use a tool like 7-Zip or WinRAR, or the `tar` command in PowerShell or Command Prompt:
-    ```shell
-    tar -xzf gs_windows_amd64.tar.gz
-    ```
-4.  Move the `gs.exe` binary to a directory in your system's `PATH`. For example, you can create a folder `C:\Program Files\gitscribe` and add it to your `PATH`.
-5.  Verify the installation by opening a new terminal and running:
-    ```shell
-    gs --version
-    ```
-
-### Using `go install` (For Go developers)
-
-If you have Go installed, you can use `go install`:
+### Using `go install`
 ```shell
-go install github.com/albuquerquesz/gitscribe/cmd/gs@latest
+go install github.com/albuquerquesz/gitscribe@latest
 ```
+
+## Setup
+
+Before using GitScribe for the first time, you need to enable at least one AI model.
+
+### `gs models`
+Browse the catalog and connect your providers.
+```shell
+gs models
+```
+- Use arrow keys to select a **Provider**.
+- Choose a **Model** and press Enter.
+- Follow the instructions to log in (browser) or paste your API key.
+- The last model you configure automatically becomes your **default**.
 
 ## Usage
 
-gitscribe is easy to use. Here are the available commands:
-
 ### `gs cmt`
+Stages files, generates a commit message using the default agent, and pushes.
 
-This is the main command. It stages files, generates a commit message, commits the changes, and pushes them to the remote repository.
-
-**Stage all files, generate a commit message, and push to the `main` branch:**
+**Standard usage (Stages all and generates message):**
 ```shell
 gs cmt
 ```
 
 **Stage specific files:**
 ```shell
-gs cmt file1.go file2.go 
-  OR
-gs cmt *.go
+gs cmt main.go internal/auth/
 ```
 
-**Provide your own commit message (skips AI generation):**
+**Use a specific agent (overrides default):**
 ```shell
-gs cmt -m "feat: add new feature"
+gs cmt --agent anthropic-claude-3-5-sonnet
 ```
 
-**Push to a different branch:**
+**Custom message (skips AI):**
 ```shell
-gs cmt -b my-feature-branch
+gs cmt -m "feat: add oauth2 support"
+```
+
+### `gs auth status`
+Check which providers are currently authenticated.
+```shell
+gs auth status
 ```
 
 ### `gs update`
-
-Checks for a new version of gitscribe and prompts you to update if one is available.
+Keep your CLI up to date.
 ```shell
 gs update
 ```
-gitscribe also checks for updates in the background and will notify you when a new version is available.
 
-### `gs --version`
+## Security
 
-Prints the current version of gitscribe.
-```shell
-gs --version
-```
+GitScribe takes security seriously. It uses the `zalando/go-keyring` library to interact with your operating system's native secret management. Your API keys and OAuth tokens are stored in an encrypted state and are only decrypted in memory when making a request to the AI provider.
 
+---
+Built with ❤️ using [Charmbracelet](https://charmbracelet.com/) tools.
