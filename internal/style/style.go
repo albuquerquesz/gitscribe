@@ -130,6 +130,8 @@ func GetASCIIName() {
 		fmt.Println(styled)
 		lineIndex++
 	}
+
+	fmt.Println()
 }
 
 func SelectModel(manager *catalog.CatalogManager) (*catalog.Model, error) {

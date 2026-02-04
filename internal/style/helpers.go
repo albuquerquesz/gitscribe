@@ -7,6 +7,7 @@ import (
 	"github.com/albuquerquesz/gitscribe/internal/catalog"
 	"github.com/charmbracelet/huh"
 	spinner "github.com/charmbracelet/huh/spinner"
+	"github.com/charmbracelet/lipgloss"
 )
 
 func formatProviderName(p string) string {
@@ -39,7 +40,10 @@ func getModelOptions(manager *catalog.CatalogManager, provider string) []huh.Opt
 }
 
 func Spinner(ctx context.Context, title string) *spinner.Spinner {
-	return spinner.New().Title(title).Context(ctx)
+	return spinner.New().
+		Title(title).
+		Context(ctx).
+		Style(lipgloss.NewStyle().Foreground(DarkGrey))
 }
 
 func RunWithSpinner(title string, action func() error) error {
