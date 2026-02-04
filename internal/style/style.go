@@ -291,11 +291,11 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 				return true, nil
 			case keys.RuneKey:
 				if key.String() == "e" || key.String() == "E" {
-					fmt.Print("\033[5A")
-					for i := 0; i < 5; i++ {
+					fmt.Print("\033[3A")
+					for i := 0; i < 3; i++ {
 						fmt.Print("\033[2K\n")
 					}
-					fmt.Print("\033[5A")
+					fmt.Print("\033[3A")
 					edited, err := EditMessage(currentMessage)
 					if err != nil {
 						return true, nil
