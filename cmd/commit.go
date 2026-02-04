@@ -89,12 +89,10 @@ func commit(files []string) error {
 		targetBranch = current
 	}
 
-	pushSpinner := style.Spinner(fmt.Sprintf("Pushing files into %s...", targetBranch))
 	if err := git.Push(targetBranch); err != nil {
-		pushSpinner.Fail(err.Error())
 		return err
 	}
-	pushSpinner.Success("All done!")
+	style.Success("All done!")
 
 	return nil
 }
