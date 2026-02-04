@@ -38,6 +38,23 @@ func getModelOptions(manager *catalog.CatalogManager, provider string) []huh.Opt
 	return opts
 }
 
-func Spinner(ctx context.Context, title string) spinner.Spinner {
-	return *spinner.New().Title(title).Context(ctx)
+func Spinner(ctx context.Context, title string) *spinner.Spinner {
+	return spinner.New().Title(title).Context(ctx)
+}
+
+func RunWithSpinner(title string, action func() error) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	s := Spinner(ctx, title)
+	done := make(chan error, 1)
+	go func() {
+		done <- s.Run()
+	}()
+
+	err := action()
+	cancel()
+	<-done
+
+	return err
 }

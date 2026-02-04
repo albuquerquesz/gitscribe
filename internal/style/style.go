@@ -291,7 +291,7 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 			case keys.RuneKey:
 				if key.String() == "e" || key.String() == "E" {
 					fmt.Print("\033[3A")
-					for i := 0; i < 3; i++ {
+					for range 3 {
 						fmt.Print("\033[2K\n")
 					}
 					fmt.Print("\033[3A")
@@ -302,7 +302,7 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 					currentMessage = edited
 
 					fmt.Print("\033[3A")
-					for i := 0; i < 3; i++ {
+					for range 3 {
 						fmt.Print("\033[2K\n")
 					}
 					fmt.Print("\033[3A")

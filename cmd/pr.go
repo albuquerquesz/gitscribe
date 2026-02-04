@@ -93,8 +93,10 @@ func realizePR() error {
 		return fmt.Errorf("%s CLI not installed", cli)
 	}
 
-	style.Info(fmt.Sprintf("Pushing branch '%s' to remote...", branch))
-	if err := git.Push(branch); err != nil {
+	err = style.RunWithSpinner(fmt.Sprintf("Pushing branch '%s' to remote...", branch), func() error {
+		return git.Push(branch)
+	})
+	if err != nil {
 		style.Error(fmt.Sprintf("Failed to push branch: %v", err))
 		return err
 	}
@@ -132,7 +134,10 @@ func realizePR() error {
 	createCmd.Stdout = os.Stdout
 	createCmd.Stderr = os.Stderr
 
-	if err := createCmd.Run(); err != nil {
+	err = style.RunWithSpinner("Creating pull request...", func() error {
+		return createCmd.Run()
+	})
+	if err != nil {
 		style.Error(fmt.Sprintf("Failed to create PR: %v", err))
 		return err
 	}
@@ -152,7 +157,12 @@ func generatePR(provider string) error {
 		style.Warning("No commits found to generate PR description")
 		return nil
 	}
-	generatedContent, err := generatePRContent(commits, provider)
+	var generatedContent string
+	err = style.RunWithSpinner("Generating PR description...", func() error {
+		var err error
+		generatedContent, err = generatePRContent(commits, provider)
+		return err
+	})
 	if err != nil {
 		style.Error(fmt.Sprintf("Failed to generate PR content: %v", err))
 		return err

@@ -45,7 +45,6 @@ func commit(files []string) error {
 	style.Success("Files staged successfully!")
 
 	if len(msg) == 0 {
-
 		diff, err := git.GetStagedDiff()
 		if err != nil {
 			style.Error(err.Error())
@@ -57,7 +56,12 @@ func commit(files []string) error {
 			return nil
 		}
 
-		result, err := ai.SendPrompt(diff, commitAgent)
+		var result string
+		err = style.RunWithSpinner("Generating commit message...", func() error {
+			var err error
+			result, err = ai.SendPrompt(diff, commitAgent)
+			return err
+		})
 		if err != nil {
 			style.Error(fmt.Sprintf("Error generating message with AI: %v", err))
 			return err
@@ -87,7 +91,10 @@ func commit(files []string) error {
 		targetBranch = current
 	}
 
-	if err := git.Push(targetBranch); err != nil {
+	err := style.RunWithSpinner("Pushing to remote...", func() error {
+		return git.Push(targetBranch)
+	})
+	if err != nil {
 		return err
 	}
 	style.Success("All done!")
