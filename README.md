@@ -1,4 +1,4 @@
-# GitScribe (gs)
+# gitscribe (gs)
 
 ```
            /$$   /$$                                  /$$ /$$                
@@ -16,7 +16,7 @@
 
 **Your AI-powered multi-agent git assistant with intelligent context management.**
 
-GitScribe analyzes your staged changes and generates Conventional Commit messages using your preferred AI model. It manages multiple providers, keeps your credentials safe using your system's secure keyring, and now includes a powerful context system for project-specific instructions.
+gitscribe analyzes your staged changes and generates Conventional Commit messages using your preferred AI model. It manages multiple providers, keeps your credentials safe using your system's secure keyring, and now includes a powerful context system for project-specific instructions.
 
 ---
 
@@ -98,7 +98,7 @@ brew install gs
 
 ## Quick Start
 
-### 1. Initialize GitScribe
+### 1. Initializion
 ```shell
 gs init
 ```
