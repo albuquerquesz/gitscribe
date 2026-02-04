@@ -37,6 +37,15 @@ func init() {
 	rootCmd.AddCommand(prCmd)
 }
 
+func hasCommitsBetweenBranches(current, target string) (bool, error) {
+	cmd := exec.Command("git", "log", "--oneline", fmt.Sprintf("%s..%s", target, current))
+	output, err := cmd.Output()
+	if err != nil {
+		return false, err
+	}
+	return len(strings.TrimSpace(string(output))) > 0, nil
+}
+
 func realizePR() error {
 	style.GetASCIIName()
 
@@ -54,6 +63,22 @@ func realizePR() error {
 	if branch == "main" {
 		style.Error("Cannot create PR from main branch")
 		return fmt.Errorf("cannot create PR from main branch")
+	}
+
+	targetBranch := prTarget
+	if targetBranch == "" {
+		targetBranch = detectDefaultBranch()
+	}
+
+	hasCommits, err := hasCommitsBetweenBranches(branch, targetBranch)
+	if err != nil {
+		style.Error(fmt.Sprintf("Failed to check commits: %v", err))
+		return err
+	}
+	if !hasCommits {
+		style.Warning(fmt.Sprintf("No commits between '%s' and '%s'", targetBranch, branch))
+		style.Info("Make sure you have pushed your branch and have commits to merge")
+		return fmt.Errorf("no commits to merge")
 	}
 
 	remoteURL, err := git.GetRemoteURL()
@@ -102,13 +127,19 @@ func realizePR() error {
 	}
 	style.Success("Branch pushed successfully!")
 
+	// Verify branch exists on remote
+	verifyCmd := exec.Command("git", "ls-remote", "--heads", "origin", branch)
+	if _, err := verifyCmd.Output(); err != nil {
+		style.Warning("Branch may not be available on remote yet")
+	}
+
 	if prTitle == "" || prBody == "" {
 		style.Info("Generating PR title and body with AI...")
 	}
 
-	targetBranch := prTarget
-	if targetBranch == "" {
-		targetBranch = detectDefaultBranch()
+	if prTitle == "" {
+		style.Error("PR title cannot be empty")
+		return fmt.Errorf("PR title is required")
 	}
 
 	style.Info(fmt.Sprintf("Creating %s PR from '%s' to '%s'...", provider, branch, targetBranch))
@@ -139,6 +170,11 @@ func realizePR() error {
 	})
 	if err != nil {
 		style.Error(fmt.Sprintf("Failed to create PR: %v", err))
+		style.Info("Troubleshooting tips:")
+		style.Info("  1. Ensure you've pushed your branch: git push origin " + branch)
+		style.Info("  2. Check that you have commits to merge")
+		style.Info("  3. Verify you have permission to create PRs in this repository")
+		style.Info("  4. Try running manually: gh pr create --title \"...\" --body \"...\"")
 		return err
 	}
 
