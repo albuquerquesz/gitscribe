@@ -231,20 +231,10 @@ func InteractiveConfirm(msg string) bool {
 func EditMessage(current string) (string, error) {
 	edited := current
 
-	keyStyle := lipgloss.NewStyle().Foreground(White)
-	bracketStyle := lipgloss.NewStyle().Foreground(Grey)
-	labelStyle := lipgloss.NewStyle().Foreground(Grey)
-
-	shortcutsText := fmt.Sprintf("%s%s%s %s  %s%s%s %s",
-		bracketStyle.Render("["), keyStyle.Render("ESC"), bracketStyle.Render("]"), labelStyle.Render("Cancel"),
-		bracketStyle.Render("["), keyStyle.Render("↵"), bracketStyle.Render("]"), labelStyle.Render("Confirm"))
-
 	err := huh.NewInput().
 		Value(&edited).
 		WithTheme(GetTheme()).
 		Run()
-
-	fmt.Println(shortcutsText)
 
 	if err != nil {
 		return "", err
@@ -318,8 +308,22 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 					}
 					fmt.Print("\033[3A")
 
-					fmt.Println(messageStyle.Render(currentMessage))
-					fmt.Println(shortcuts)
+					msgStyle := lipgloss.NewStyle().
+						Foreground(LightGrey).
+						MarginTop(1).
+						MarginBottom(1)
+
+					keyStyle := lipgloss.NewStyle().Foreground(White)
+					bracketStyle := lipgloss.NewStyle().Foreground(Grey)
+					labelStyle := lipgloss.NewStyle().Foreground(Grey)
+
+					newShortcuts := fmt.Sprintf("%s%s%s %s  %s%s%s %s  %s%s%s %s",
+						bracketStyle.Render("["), keyStyle.Render("E"), bracketStyle.Render("]"), labelStyle.Render("Edit"),
+						bracketStyle.Render("["), keyStyle.Render("ESC"), bracketStyle.Render("]"), labelStyle.Render("Cancel"),
+						bracketStyle.Render("["), keyStyle.Render("↵"), bracketStyle.Render("]"), labelStyle.Render("Continue"))
+
+					fmt.Println(msgStyle.Render(currentMessage))
+					fmt.Println(newShortcuts)
 
 					return true, nil
 				}
