@@ -11,9 +11,10 @@ import (
 )
 
 var agentRemoveCmd = &cobra.Command{
-	Use:   "remove [name]",
-	Short: "Remove an agent profile",
-	Args:  cobra.ExactArgs(1),
+	Use:     "remove [name]",
+	Aliases: []string{"rm"},
+	Short:   "Remove an agent profile",
+	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return removeAgent(args[0])
 	},
