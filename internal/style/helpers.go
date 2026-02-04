@@ -1,11 +1,12 @@
 package style
 
 import (
-	"fmt"
+	"context"
 	"strings"
 
 	"github.com/albuquerquesz/gitscribe/internal/catalog"
 	"github.com/charmbracelet/huh"
+	spinner "github.com/charmbracelet/huh/spinner"
 )
 
 func formatProviderName(p string) string {
@@ -37,30 +38,6 @@ func getModelOptions(manager *catalog.CatalogManager, provider string) []huh.Opt
 	return opts
 }
 
-type SimpleSpinner struct {
-	message string
-}
-
-func (s *SimpleSpinner) Stop() {
-}
-
-func (s *SimpleSpinner) Success(msg string) {
-	fmt.Println(SuccessStyle.Render("✓ " + msg))
-}
-
-func (s *SimpleSpinner) Fail(msg string) {
-	fmt.Println(ErrorStyle.Render("✖ " + msg))
-}
-
-func (s *SimpleSpinner) Warning(msg string) {
-	fmt.Println(WarningStyle.Render("⚠ " + msg))
-}
-
-func (s *SimpleSpinner) UpdateText(msg string) {
-	s.message = msg
-}
-
-func Spinner(msg string) *SimpleSpinner {
-	fmt.Printf("%s...\n", msg)
-	return &SimpleSpinner{message: msg}
+func Spinner(ctx context.Context, title string) spinner.Spinner {
+	return *spinner.New().Title(title).Context(ctx)
 }

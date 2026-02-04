@@ -46,7 +46,7 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 		if err := runSetKey(); err != nil {
 			return err
 		}
-		
+
 		apiKey, err = auth.LoadAPIKey(m.Provider)
 		if err != nil || apiKey == "" {
 			return fmt.Errorf("API key was not stored correctly")

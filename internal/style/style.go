@@ -235,7 +235,6 @@ func EditMessage(current string) (string, error) {
 		Value(&edited).
 		WithTheme(GetTheme()).
 		Run()
-
 	if err != nil {
 		return "", err
 	}

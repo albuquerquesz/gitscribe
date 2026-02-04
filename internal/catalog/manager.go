@@ -20,7 +20,7 @@ func (cm *CatalogManager) ListProviders() []string {
 	return list
 }
 
-func (cm *CatalogManager) GetModelsByProvider(provider string) ([]Model) {
+func (cm *CatalogManager) GetModelsByProvider(provider string) []Model {
 	var models []Model
 	for _, m := range StaticModels {
 		if m.Provider == provider {
