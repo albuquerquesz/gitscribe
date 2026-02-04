@@ -54,6 +54,13 @@ func realizePR() error {
 		return err
 	}
 
+	// Check for uncommitted changes
+	diffCmd := exec.Command("git", "diff", "--quiet")
+	if err := diffCmd.Run(); err != nil {
+		style.Info("Commite primeiro")
+		return nil
+	}
+
 	branch, err := git.GetCurrentBranch()
 	if err != nil {
 		style.Error(fmt.Sprintf("Failed to get current branch: %v", err))
