@@ -142,24 +142,43 @@ func realizePR() error {
 		return fmt.Errorf("PR title is required")
 	}
 
+	// Debug: Print values before creating PR
+	fmt.Printf("Debug: branch='%s', targetBranch='%s', prTitle='%s', prBody='%s'\n", branch, targetBranch, prTitle, prBody)
+
+	if branch == "" {
+		return fmt.Errorf("branch name is empty - cannot create PR")
+	}
+
 	style.Info(fmt.Sprintf("Creating %s PR from '%s' to '%s'...", provider, branch, targetBranch))
+
+	// Get git working directory
+	gitDirCmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	gitDirOutput, err := gitDirCmd.Output()
+	if err != nil {
+		style.Error("Failed to get git directory")
+		return err
+	}
+	workDir := strings.TrimSpace(string(gitDirOutput))
 
 	var createCmd *exec.Cmd
 
 	switch provider {
 	case "github":
-		args := []string{"pr", "create", "--title", prTitle, "--body", prBody, "--base", targetBranch}
+		args := []string{"pr", "create", "--title", prTitle, "--body", prBody, "--base", targetBranch, "--head", branch}
+		fmt.Printf("Debug: gh args = %v\n", args)
 		if prDraft {
 			args = append(args, "--draft")
 		}
 		createCmd = exec.Command("gh", args...)
+		createCmd.Dir = workDir
 
 	case "gitlab":
-		args := []string{"mr", "create", "--title", prTitle, "--description", prBody, "--target-branch", targetBranch}
+		args := []string{"mr", "create", "--title", prTitle, "--description", prBody, "--target-branch", targetBranch, "--source-branch", branch}
 		if prDraft {
 			args = append(args, "--draft")
 		}
 		createCmd = exec.Command("glab", args...)
+		createCmd.Dir = workDir
 	}
 
 	createCmd.Stdout = os.Stdout
