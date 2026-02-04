@@ -74,18 +74,16 @@ func commit(files []string) error {
 	}
 	msg = finalMsg
 
-	commitSpinner := style.Spinner("Committing...")
 	if err := git.Commit(msg); err != nil {
-		commitSpinner.Fail(err.Error())
 		return err
 	}
-	commitSpinner.Success("Commit successful!")
+	style.Success("Commit successful!")
 
 	targetBranch := branch
 	if targetBranch == "" {
 		current, err := git.GetCurrentBranch()
 		if err != nil {
-			commitSpinner.Warning("Could not determine current branch. Please specify branch with -b.")
+			style.Warning("Could not determine current branch. Please specify branch with -b.")
 			return err
 		}
 		targetBranch = current
