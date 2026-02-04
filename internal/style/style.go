@@ -281,7 +281,6 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 		keyStyle := lipgloss.NewStyle().Foreground(White)
 		bracketStyle := lipgloss.NewStyle().Foreground(Grey)
 		labelStyle := lipgloss.NewStyle().Foreground(Grey)
-		editShortcutsStyle := lipgloss.NewStyle().Foreground(Grey)
 
 		shortcuts := fmt.Sprintf("%s%s%s %s  %s%s%s %s  %s%s%s %s",
 			bracketStyle.Render("["), keyStyle.Render("E"), bracketStyle.Render("]"), labelStyle.Render("Edit"),
@@ -302,13 +301,26 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 				return true, nil
 			case keys.RuneKey:
 				if key.String() == "e" || key.String() == "E" {
+					fmt.Print("\033[5A")
+					for i := 0; i < 5; i++ {
+						fmt.Print("\033[2K\n")
+					}
+					fmt.Print("\033[5A")
 					edited, err := EditMessage(currentMessage)
 					if err != nil {
-						fmt.Println(editShortcutsStyle.Render("[ESC] Cancel  [↵] Confirm"))
 						return true, nil
 					}
 					currentMessage = edited
-					fmt.Println(editShortcutsStyle.Render("[ESC] Cancel  [↵] Confirm"))
+
+					fmt.Print("\033[3A")
+					for i := 0; i < 3; i++ {
+						fmt.Print("\033[2K\n")
+					}
+					fmt.Print("\033[3A")
+
+					fmt.Println(messageStyle.Render(currentMessage))
+					fmt.Println(shortcuts)
+
 					return true, nil
 				}
 			}
