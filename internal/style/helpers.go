@@ -2,6 +2,7 @@ package style
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/albuquerquesz/gitscribe/internal/catalog"
@@ -40,6 +41,7 @@ func getModelOptions(manager *catalog.CatalogManager, provider string) []huh.Opt
 }
 
 func Spinner(ctx context.Context, title string) *spinner.Spinner {
+	fmt.Println()
 	return spinner.New().
 		Title(title).
 		Context(ctx).
