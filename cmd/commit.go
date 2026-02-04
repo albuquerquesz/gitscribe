@@ -72,7 +72,9 @@ func commit(files []string) error {
 
 	action, finalMsg := style.ShowCommitPrompt(msg)
 	if action == "cancel" {
-		return fmt.Errorf("commit cancelled")
+		fmt.Println()
+		fmt.Println("Commit cancelled")
+		return nil
 	}
 	msg = finalMsg
 
