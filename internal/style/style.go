@@ -235,17 +235,17 @@ func EditMessage(current string) (string, error) {
 	bracketStyle := lipgloss.NewStyle().Foreground(Grey)
 	labelStyle := lipgloss.NewStyle().Foreground(Grey)
 
-	shortcuts := fmt.Sprintf("\n%s%s%s %s  %s%s%s %s",
+	shortcutsText := fmt.Sprintf("%s%s%s %s  %s%s%s %s",
 		bracketStyle.Render("["), keyStyle.Render("ESC"), bracketStyle.Render("]"), labelStyle.Render("Cancel"),
-		bracketStyle.Render("["), keyStyle.Render("↵"), bracketStyle.Render("]"), labelStyle.Render("Confirm"),
-	)
+		bracketStyle.Render("["), keyStyle.Render("↵"), bracketStyle.Render("]"), labelStyle.Render("Confirm"))
 
 	err := huh.NewInput().
-		Title("Edit commit message").
-		Description(shortcuts).
 		Value(&edited).
 		WithTheme(GetTheme()).
 		Run()
+
+	fmt.Println(shortcutsText)
+
 	if err != nil {
 		return "", err
 	}
@@ -281,12 +281,13 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 		keyStyle := lipgloss.NewStyle().Foreground(White)
 		bracketStyle := lipgloss.NewStyle().Foreground(Grey)
 		labelStyle := lipgloss.NewStyle().Foreground(Grey)
+		editShortcutsStyle := lipgloss.NewStyle().Foreground(Grey)
 
 		shortcuts := fmt.Sprintf("%s%s%s %s  %s%s%s %s  %s%s%s %s",
 			bracketStyle.Render("["), keyStyle.Render("E"), bracketStyle.Render("]"), labelStyle.Render("Edit"),
 			bracketStyle.Render("["), keyStyle.Render("ESC"), bracketStyle.Render("]"), labelStyle.Render("Cancel"),
-			bracketStyle.Render("["), keyStyle.Render("↵"), bracketStyle.Render("]"), labelStyle.Render("Continue"),
-		)
+			bracketStyle.Render("["), keyStyle.Render("↵"), bracketStyle.Render("]"), labelStyle.Render("Continue"))
+
 		fmt.Println(shortcuts)
 
 		keyboard.Listen(func(key keys.Key) (stop bool, err error) {
@@ -303,11 +304,11 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 				if key.String() == "e" || key.String() == "E" {
 					edited, err := EditMessage(currentMessage)
 					if err != nil {
-						resultAction = "cancel"
-						resultMessage = ""
+						fmt.Println(editShortcutsStyle.Render("[ESC] Cancel  [↵] Confirm"))
 						return true, nil
 					}
 					currentMessage = edited
+					fmt.Println(editShortcutsStyle.Render("[ESC] Cancel  [↵] Confirm"))
 					return true, nil
 				}
 			}
