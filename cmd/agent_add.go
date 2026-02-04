@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/albuquerquesz/gitscribe/internal/config"
 	"github.com/albuquerquesz/gitscribe/internal/secrets"
@@ -58,12 +59,10 @@ func addAgent() error {
 	}
 
 	valid := false
-	for _, p := range validProviders {
-		if p == provider {
-			valid = true
-			break
-		}
+	if found := slices.Contains(validProviders, provider); found {
+		valid = true
 	}
+
 	if !valid {
 		return fmt.Errorf("invalid provider: %s", newAgentProvider)
 	}
@@ -108,6 +107,6 @@ func addAgent() error {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
-	fmt.Printf("✅ Agent '%s' added successfully!\n", newAgentName)
+	fmt.Printf("Agent '%s' added successfully!\n", newAgentName)
 	return nil
 }

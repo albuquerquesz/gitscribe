@@ -64,13 +64,15 @@ func commit(files []string) error {
 			aiSpinner.Fail(fmt.Sprintf("Error generating message with AI: %v", err))
 			return err
 		}
+		aiSpinner.Success("Message generated!")
 		msg = result
-		aiSpinner.Success("Commit message generated!")
 	}
 
-	if !style.ConfirmAction(msg) {
+	action, finalMsg := style.ShowCommitPrompt(msg)
+	if action == "cancel" {
 		return fmt.Errorf("commit cancelled")
 	}
+	msg = finalMsg
 
 	commitSpinner := style.Spinner("Committing...")
 	if err := git.Commit(msg); err != nil {
@@ -98,4 +100,3 @@ func commit(files []string) error {
 
 	return nil
 }
-

@@ -4,22 +4,25 @@ import (
 	"fmt"
 	"strings"
 
+	"atomicgo.dev/keyboard"
+	"atomicgo.dev/keyboard/keys"
 	"github.com/albuquerquesz/gitscribe/internal/catalog"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
 
 var (
-	White     = lipgloss.Color("#FFFFFF")
-	LightGrey = lipgloss.Color("#E8E8E8")
-	Grey      = lipgloss.Color("#A0A0A0")
-	DarkGrey  = lipgloss.Color("#505050")
-	Black     = lipgloss.Color("#000000")
+	White      = lipgloss.Color("#FFFFFF")
+	LightGrey  = lipgloss.Color("#E8E8E8")
+	Grey       = lipgloss.Color("#A0A0A0")
+	DarkGrey   = lipgloss.Color("#505050")
+	SoftRed    = lipgloss.Color("#FF9999")
+	SoftOrange = lipgloss.Color("#FFCC99")
 
 	SuccessStyle = lipgloss.NewStyle().Foreground(Grey)
-	ErrorStyle   = lipgloss.NewStyle().Foreground(DarkGrey)
+	ErrorStyle   = lipgloss.NewStyle().Foreground(SoftRed)
 	InfoStyle    = lipgloss.NewStyle().Foreground(LightGrey)
-	WarningStyle = lipgloss.NewStyle().Foreground(Grey)
+	WarningStyle = lipgloss.NewStyle().Foreground(SoftOrange)
 	TitleStyle   = lipgloss.NewStyle().Foreground(White).Bold(true).MarginBottom(1)
 
 	ProviderHeaderStyle = lipgloss.NewStyle().Foreground(Grey).Bold(true).PaddingLeft(1)
@@ -28,11 +31,40 @@ var (
 
 	BoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(DarkGrey).
+			BorderForeground(Grey).
 			Padding(1, 2).
 			MarginTop(1).
 			MarginBottom(1)
 )
+
+func GetTheme() *huh.Theme {
+	t := huh.ThemeCharm()
+
+	t.Focused.Title = t.Focused.Title.Foreground(White)
+
+	t.Focused.Description = t.Focused.Description.Foreground(Grey)
+
+	t.Focused.SelectSelector = t.Focused.SelectSelector.Foreground(Grey)
+
+	t.Focused.Option = t.Focused.Option.Foreground(LightGrey)
+
+	t.Focused.SelectedOption = t.Focused.SelectedOption.Foreground(White)
+
+	t.Focused.NextIndicator = t.Focused.NextIndicator.Foreground(Grey)
+
+	t.Focused.PrevIndicator = t.Focused.PrevIndicator.Foreground(Grey)
+
+	t.Blurred.Title = t.Blurred.Title.Foreground(Grey)
+	t.Blurred.Option = t.Blurred.Option.Foreground(DarkGrey)
+
+	t.Help.Ellipsis = t.Help.Ellipsis.Foreground(Grey)
+	t.Help.ShortKey = t.Help.ShortKey.Foreground(Grey)
+	t.Help.ShortDesc = t.Help.ShortDesc.Foreground(LightGrey)
+	t.Help.FullKey = t.Help.FullKey.Foreground(Grey)
+	t.Help.FullDesc = t.Help.FullDesc.Foreground(LightGrey)
+
+	return t
+}
 
 func ConfirmAction(msg string) bool {
 	var confirm bool
@@ -41,6 +73,7 @@ func ConfirmAction(msg string) bool {
 		Affirmative("Yes").
 		Negative("No").
 		Value(&confirm).
+		WithTheme(GetTheme()).
 		Run()
 
 	return err == nil && confirm
@@ -127,7 +160,7 @@ func SelectModel(manager *catalog.CatalogManager) (*catalog.Model, error) {
 				}, &selectedProvider).
 				Value(&selectedModelID),
 		),
-	)
+	).WithTheme(GetTheme())
 
 	if err := form.Run(); err != nil {
 		return nil, err
@@ -142,6 +175,7 @@ func Prompt(label string) (string, error) {
 		Title(label).
 		EchoMode(huh.EchoModePassword).
 		Value(&input).
+		WithTheme(GetTheme()).
 		Run()
 	return input, err
 }
@@ -192,4 +226,87 @@ func Box(title, content string) {
 
 func InteractiveConfirm(msg string) bool {
 	return ConfirmAction(msg)
+}
+
+func EditMessage(current string) (string, error) {
+	edited := current
+	err := huh.NewInput().
+		Title("Edit commit message").
+		Value(&edited).
+		WithTheme(GetTheme()).
+		Run()
+	if err != nil {
+		return "", err
+	}
+	return edited, nil
+}
+
+func ShowCommitPrompt(message string) (action string, finalMessage string) {
+	currentMessage := message
+	resultAction := ""
+	resultMessage := ""
+	done := false
+	lineIndex := 0
+
+	for !done {
+		messageLines := strings.Count(currentMessage, "\n") + 1
+		totalLines := messageLines + 3
+
+		if lineIndex > 0 {
+			fmt.Printf("\033[%dA", totalLines)
+			for i := 0; i < totalLines; i++ {
+				fmt.Print("\033[2K\n")
+			}
+			fmt.Printf("\033[%dA", totalLines)
+		}
+		lineIndex++
+
+		messageStyle := lipgloss.NewStyle().
+			Foreground(LightGrey).
+			MarginTop(1).
+			MarginBottom(1)
+		fmt.Println(messageStyle.Render(currentMessage))
+
+		keyStyle := lipgloss.NewStyle().Foreground(White)
+		bracketStyle := lipgloss.NewStyle().Foreground(Grey)
+		labelStyle := lipgloss.NewStyle().Foreground(Grey)
+
+		shortcuts := fmt.Sprintf("%s%s%s %s  %s%s%s %s  %s%s%s %s",
+			bracketStyle.Render("["), keyStyle.Render("E"), bracketStyle.Render("]"), labelStyle.Render("Edit"),
+			bracketStyle.Render("["), keyStyle.Render("ESC"), bracketStyle.Render("]"), labelStyle.Render("Cancel"),
+			bracketStyle.Render("["), keyStyle.Render("↵"), bracketStyle.Render("]"), labelStyle.Render("Continue"),
+		)
+		fmt.Println(shortcuts)
+
+		keyboard.Listen(func(key keys.Key) (stop bool, err error) {
+			switch key.Code {
+			case keys.Escape:
+				resultAction = "cancel"
+				resultMessage = ""
+				return true, nil
+			case keys.Enter:
+				resultAction = "commit"
+				resultMessage = currentMessage
+				return true, nil
+			case keys.RuneKey:
+				if key.String() == "e" || key.String() == "E" {
+					edited, err := EditMessage(currentMessage)
+					if err != nil {
+						resultAction = "cancel"
+						resultMessage = ""
+						return true, nil
+					}
+					currentMessage = edited
+					return true, nil
+				}
+			}
+			return false, nil
+		})
+
+		if resultAction != "" {
+			done = true
+		}
+	}
+
+	return resultAction, resultMessage
 }
