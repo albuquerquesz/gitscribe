@@ -38,12 +38,11 @@ func commit(files []string) error {
 		files = append(files, ".")
 	}
 
-	addSpinner := style.Spinner("Staging files...")
 	if err := git.StageFiles(files); err != nil {
-		addSpinner.Fail(err.Error())
+		style.Error(err.Error())
 		return err
 	}
-	addSpinner.Success("Files staged successfully!")
+	style.Success("Files staged successfully!")
 
 	if len(msg) == 0 {
 		aiSpinner := style.Spinner("Analyzing changes and generating message with AI...")
