@@ -42,11 +42,19 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 
 	if !isAuthenticated {
 		style.Info(fmt.Sprintf("Model %s from %s requires an API key.", m.Name, m.Provider))
-		authProvider = m.Provider
-		if err := runSetKey(); err != nil {
-			return err
+
+		// Prompt for API key directly
+		apiKeyInput, err := style.Prompt(fmt.Sprintf("Enter API key for %s", m.Provider))
+		if err != nil {
+			return fmt.Errorf("failed to get API key: %w", err)
 		}
-		
+
+		// Store the API key
+		if err := auth.StoreAPIKey(m.Provider, apiKeyInput); err != nil {
+			return fmt.Errorf("failed to store API key: %w", err)
+		}
+
+		// Verify it was stored
 		apiKey, err = auth.LoadAPIKey(m.Provider)
 		if err != nil || apiKey == "" {
 			return fmt.Errorf("API key was not stored correctly")

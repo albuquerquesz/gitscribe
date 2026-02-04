@@ -19,10 +19,10 @@ const (
 )
 
 type AnthropicClient struct {
-	client   *http.Client
-	profile  config.AgentProfile
-	apiKey   string
-	baseURL  string
+	client  *http.Client
+	profile config.AgentProfile
+	apiKey  string
+	baseURL string
 }
 
 func NewAnthropicClient(profile config.AgentProfile, apiKey string) (*AnthropicClient, error) {
@@ -64,12 +64,12 @@ type anthropicContent struct {
 }
 
 type anthropicResponse struct {
-	ID           string             `json:"id"`
-	Type         string             `json:"type"`
-	Role         string             `json:"role"`
-	Content      []anthropicContent `json:"content"`
-	Usage        anthropicUsage     `json:"usage"`
-	StopReason   string             `json:"stop_reason,omitempty"`
+	ID         string             `json:"id"`
+	Type       string             `json:"type"`
+	Role       string             `json:"role"`
+	Content    []anthropicContent `json:"content"`
+	Usage      anthropicUsage     `json:"usage"`
+	StopReason string             `json:"stop_reason,omitempty"`
 }
 
 type anthropicUsage struct {

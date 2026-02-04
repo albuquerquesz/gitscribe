@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
 
 	"github.com/albuquerquesz/gitscribe/internal/ai"
 	"github.com/albuquerquesz/gitscribe/internal/git"
@@ -45,7 +47,6 @@ func commit(files []string) error {
 	style.Success("Files staged successfully!")
 
 	if len(msg) == 0 {
-
 		diff, err := git.GetStagedDiff()
 		if err != nil {
 			style.Error(err.Error())
@@ -57,7 +58,14 @@ func commit(files []string) error {
 			return nil
 		}
 
-		result, err := ai.SendPrompt(diff, commitAgent)
+		var result string
+		err = style.RunWithSpinner("Generating commit message...", func() error {
+			var err error
+			// Build prompt with context
+			enhancedDiff := ai.BuildPromptWithContext(diff, getProjectPath())
+			result, err = ai.SendPrompt(enhancedDiff, commitAgent)
+			return err
+		})
 		if err != nil {
 			style.Error(fmt.Sprintf("Error generating message with AI: %v", err))
 			return err
@@ -68,7 +76,9 @@ func commit(files []string) error {
 
 	action, finalMsg := style.ShowCommitPrompt(msg)
 	if action == "cancel" {
-		return fmt.Errorf("commit cancelled")
+		fmt.Println()
+		fmt.Println("Commit cancelled")
+		return nil
 	}
 	msg = finalMsg
 
@@ -87,10 +97,22 @@ func commit(files []string) error {
 		targetBranch = current
 	}
 
-	if err := git.Push(targetBranch); err != nil {
+	err := style.RunWithSpinner("Pushing to remote...", func() error {
+		return git.Push(targetBranch)
+	})
+	if err != nil {
 		return err
 	}
 	style.Success("All done!")
 
 	return nil
+}
+
+func getProjectPath() string {
+	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(output))
 }

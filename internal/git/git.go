@@ -15,13 +15,9 @@ func StageFiles(files []string) error {
 	}
 
 	args := append([]string{"add"}, files...)
-
 	cmd := exec.Command("git", args...)
-
 	cmd.Stdout = io.Discard
-
 	var stderr bytes.Buffer
-
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {

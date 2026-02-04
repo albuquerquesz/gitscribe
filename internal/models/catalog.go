@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-
 type ModelInfo struct {
 	ID          string
 	Name        string
@@ -16,7 +15,6 @@ type ModelInfo struct {
 	Tags        []string
 }
 
-
 type ProviderInfo struct {
 	Name           string
 	DisplayName    string
@@ -24,7 +22,6 @@ type ProviderInfo struct {
 	SupportsOAuth2 bool
 	Description    string
 }
-
 
 var Providers = map[string]ProviderInfo{
 	"anthropic": {
@@ -70,7 +67,6 @@ var Providers = map[string]ProviderInfo{
 		Description:    "Multi-provider access",
 	},
 }
-
 
 var ModelCatalog = map[string][]ModelInfo{
 	"anthropic": {
@@ -267,14 +263,12 @@ var ModelCatalog = map[string][]ModelInfo{
 	},
 }
 
-
 func GetModelsForProvider(provider string) []ModelInfo {
 	if models, ok := ModelCatalog[provider]; ok {
 		return models
 	}
 	return []ModelInfo{}
 }
-
 
 func GetModelByID(provider, modelID string) (ModelInfo, error) {
 	models := GetModelsForProvider(provider)
@@ -286,7 +280,6 @@ func GetModelByID(provider, modelID string) (ModelInfo, error) {
 	return ModelInfo{}, fmt.Errorf("model %s not found for provider %s", modelID, provider)
 }
 
-
 func GetAllModels() []ModelInfo {
 	var all []ModelInfo
 	for _, models := range ModelCatalog {
@@ -294,7 +287,6 @@ func GetAllModels() []ModelInfo {
 	}
 	return all
 }
-
 
 func GetProviderKeys() []string {
 	keys := make([]string, 0, len(Providers))
@@ -304,7 +296,6 @@ func GetProviderKeys() []string {
 	return keys
 }
 
-
 func SupportsOAuth2(provider string) bool {
 	if p, ok := Providers[provider]; ok {
 		return p.SupportsOAuth2
@@ -312,14 +303,12 @@ func SupportsOAuth2(provider string) bool {
 	return false
 }
 
-
 func GenerateProfileName(provider, modelID string) string {
-	
+
 	cleanModel := strings.ReplaceAll(modelID, "-", "_")
 	cleanModel = strings.ReplaceAll(cleanModel, ".", "_")
 	cleanModel = strings.ReplaceAll(cleanModel, "/", "_")
 
-	
 	if idx := strings.LastIndex(cleanModel, "_20"); idx != -1 {
 		cleanModel = cleanModel[:idx]
 	}
