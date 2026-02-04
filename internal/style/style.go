@@ -231,7 +231,6 @@ func InteractiveConfirm(msg string) bool {
 func EditMessage(current string) (string, error) {
 	edited := current
 	err := huh.NewInput().
-		Title("Edit commit message").
 		Value(&edited).
 		WithTheme(GetTheme()).
 		Run()
@@ -254,7 +253,7 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 
 		if lineIndex > 0 {
 			fmt.Printf("\033[%dA", totalLines)
-			for i := 0; i < totalLines; i++ {
+			for range totalLines {
 				fmt.Print("\033[2K\n")
 			}
 			fmt.Printf("\033[%dA", totalLines)

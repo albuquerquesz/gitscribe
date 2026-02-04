@@ -45,25 +45,24 @@ func commit(files []string) error {
 	style.Success("Files staged successfully!")
 
 	if len(msg) == 0 {
-		aiSpinner := style.Spinner("Analyzing changes and generating message with AI...")
 
 		diff, err := git.GetStagedDiff()
 		if err != nil {
-			aiSpinner.Fail(err.Error())
+			style.Error(err.Error())
 			return err
 		}
 
 		if len(diff) == 0 {
-			aiSpinner.Warning("No changes found in stage. Nothing to commit.")
+			style.Warning("No changes found in stage. Nothing to commit.")
 			return nil
 		}
 
 		result, err := ai.SendPrompt(diff, commitAgent)
 		if err != nil {
-			aiSpinner.Fail(fmt.Sprintf("Error generating message with AI: %v", err))
+			style.Error(fmt.Sprintf("Error generating message with AI: %v", err))
 			return err
 		}
-		aiSpinner.Success("Message generated!")
+		style.Success("Message generated!")
 		msg = result
 	}
 
