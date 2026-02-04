@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
 
 	"github.com/albuquerquesz/gitscribe/internal/ai"
 	"github.com/albuquerquesz/gitscribe/internal/git"
@@ -59,7 +61,9 @@ func commit(files []string) error {
 		var result string
 		err = style.RunWithSpinner("Generating commit message...", func() error {
 			var err error
-			result, err = ai.SendPrompt(diff, commitAgent)
+			// Build prompt with context
+			enhancedDiff := ai.BuildPromptWithContext(diff, getProjectPath())
+			result, err = ai.SendPrompt(enhancedDiff, commitAgent)
 			return err
 		})
 		if err != nil {
@@ -102,4 +106,13 @@ func commit(files []string) error {
 	style.Success("All done!")
 
 	return nil
+}
+
+func getProjectPath() string {
+	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(output))
 }

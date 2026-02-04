@@ -7,6 +7,7 @@ import (
 	"atomicgo.dev/keyboard"
 	"atomicgo.dev/keyboard/keys"
 	"github.com/albuquerquesz/gitscribe/internal/catalog"
+	"github.com/albuquerquesz/gitscribe/internal/config"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -273,8 +274,9 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 		bracketStyle := lipgloss.NewStyle().Foreground(Grey)
 		labelStyle := lipgloss.NewStyle().Foreground(Grey)
 
-		shortcuts := fmt.Sprintf("%s%s%s %s  %s%s%s %s  %s%s%s %s",
+		shortcuts := fmt.Sprintf("%s%s%s %s  %s%s%s %s  %s%s%s %s  %s%s%s %s",
 			bracketStyle.Render("["), keyStyle.Render("E"), bracketStyle.Render("]"), labelStyle.Render("Edit"),
+			bracketStyle.Render("["), keyStyle.Render("C"), bracketStyle.Render("]"), labelStyle.Render("Contexts"),
 			bracketStyle.Render("["), keyStyle.Render("ESC"), bracketStyle.Render("]"), labelStyle.Render("Cancel"),
 			bracketStyle.Render("["), keyStyle.Render("↵"), bracketStyle.Render("]"), labelStyle.Render("Continue"))
 
@@ -291,6 +293,10 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 				resultMessage = currentMessage
 				return true, nil
 			case keys.RuneKey:
+				if key.String() == "c" || key.String() == "C" {
+					showContexts("")
+					return false, nil
+				}
 				if key.String() == "e" || key.String() == "E" {
 					fmt.Print("\033[3A")
 					for range 3 {
@@ -338,4 +344,23 @@ func ShowCommitPrompt(message string) (action string, finalMessage string) {
 	}
 
 	return resultAction, resultMessage
+}
+
+func showContexts(currentPath string) {
+	cm, err := config.LoadContexts()
+	if err != nil {
+		fmt.Println("\nErro ao carregar contextos")
+		return
+	}
+
+	contexts := cm.ListContexts(currentPath)
+	if len(contexts) == 0 {
+		fmt.Println("\nℹ Nenhum contexto ativo")
+		return
+	}
+
+	fmt.Println("\nContextos ativos:")
+	for _, ctx := range contexts {
+		fmt.Printf("  • %s\n", ctx.Text)
+	}
 }
