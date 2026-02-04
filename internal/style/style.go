@@ -230,7 +230,19 @@ func InteractiveConfirm(msg string) bool {
 
 func EditMessage(current string) (string, error) {
 	edited := current
+
+	keyStyle := lipgloss.NewStyle().Foreground(White)
+	bracketStyle := lipgloss.NewStyle().Foreground(Grey)
+	labelStyle := lipgloss.NewStyle().Foreground(Grey)
+
+	shortcuts := fmt.Sprintf("\n%s%s%s %s  %s%s%s %s",
+		bracketStyle.Render("["), keyStyle.Render("ESC"), bracketStyle.Render("]"), labelStyle.Render("Cancel"),
+		bracketStyle.Render("["), keyStyle.Render("↵"), bracketStyle.Render("]"), labelStyle.Render("Confirm"),
+	)
+
 	err := huh.NewInput().
+		Title("Edit commit message").
+		Description(shortcuts).
 		Value(&edited).
 		WithTheme(GetTheme()).
 		Run()

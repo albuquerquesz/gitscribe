@@ -11,7 +11,7 @@ import (
 
 var agentListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all configured agentss",
+	Short: "List all configured agents",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return listAllAgents()
 	},
