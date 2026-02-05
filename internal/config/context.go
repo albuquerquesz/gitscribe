@@ -86,7 +86,6 @@ func (cm *ContextManager) RemoveContext(projectPath string, index int) error {
 
 	cm.Contexts[projectPath] = append(contexts[:index], contexts[index+1:]...)
 
-	// Remove o path se não tiver mais contextos
 	if len(cm.Contexts[projectPath]) == 0 {
 		delete(cm.Contexts, projectPath)
 	}

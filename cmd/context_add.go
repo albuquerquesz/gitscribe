@@ -24,7 +24,6 @@ func init() {
 }
 
 func addContext(text string) error {
-	// Obter path atual
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 	output, err := cmd.Output()
 	if err != nil {

@@ -44,14 +44,12 @@ func removeContext() error {
 		return nil
 	}
 
-	// Mostrar contextos
 	fmt.Println(style.TitleStyle.Render("\n Contextos disponíveis:"))
 	for i, ctx := range contexts {
 		fmt.Printf("%d. %s\n", i+1, ctx.Text)
 	}
 	fmt.Println()
 
-	// Perguntar qual remover
 	var index int
 	fmt.Print("Qual deseja remover? (1-" + fmt.Sprintf("%d", len(contexts)) + "): ")
 	if _, err := fmt.Scanf("%d", &index); err != nil || index < 1 || index > len(contexts) {

@@ -61,7 +61,6 @@ func commit(files []string) error {
 		var result string
 		err = style.RunWithSpinner("Generating commit message...", func() error {
 			var err error
-			// Build prompt with context
 			enhancedDiff := ai.BuildPromptWithContext(diff, getProjectPath())
 			result, err = ai.SendPrompt(enhancedDiff, commitAgent)
 			return err

@@ -70,6 +70,8 @@ func NewOpenAIClient(profile config.AgentProfile, apiKey string) (*OpenAIClient,
 			baseURL = "http://localhost:11434/v1"
 		case config.ProviderOpenCode:
 			baseURL = "https://api.opencode.com/v1"
+		case config.ProviderHackClub:
+			baseURL = "https://ai.hackclub.com/proxy/v1"
 		default:
 			baseURL = "https://api.openai.com/v1"
 		}
@@ -191,7 +193,7 @@ func (f *Factory) CreateClient(profile config.AgentProfile) (Client, error) {
 	_ = source
 
 	switch profile.Provider {
-	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama, config.ProviderOpenCode:
+	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama, config.ProviderOpenCode, config.ProviderHackClub:
 		return NewOpenAIClient(profile, apiKey)
 	case config.ProviderClaude:
 		return NewAnthropicClient(profile, apiKey)
@@ -200,51 +202,51 @@ func (f *Factory) CreateClient(profile config.AgentProfile) (Client, error) {
 	}
 }
 
-func getEnvKeyForProvider(provider config.AgentProvider) string {
-	envVars := map[config.AgentProvider]string{
-		config.ProviderOpenAI:     "OPENAI_API_KEY",
-		config.ProviderClaude:     "ANTHROPIC_API_KEY",
-		config.ProviderGroq:       "GROQ_API_KEY",
-		config.ProviderOpenCode:   "OPENCODE_API_KEY",
-		config.ProviderGemini:     "GOOGLE_API_KEY",
-		config.ProviderOpenRouter: "OPENROUTER_API_KEY",
+func (f *Factory) CreateClientWithKey(profile config.AgentProfile, apiKey string) (Client, error) {
+	switch profile.Provider {
+	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama, config.ProviderOpenCode, config.ProviderHackClub:
+		return NewOpenAIClient(profile, apiKey)
+	case config.ProviderClaude:
+		return NewAnthropicClient(profile, apiKey)
+	default:
+		return nil, fmt.Errorf("unsupported provider: %s", profile.Provider)
 	}
-	if envVar, ok := envVars[provider]; ok {
-		return os.Getenv(envVar)
-	}
-	return ""
 }
 
-func (f *Factory) resolveAPIKey(profile config.AgentProfile) (apiKey string, source string) {
-	if key, err := f.secretsManager.RetrieveAgentKey(profile.Name); err == nil && key != "" {
-		return key, "keyring"
+func (f *Factory) resolveAPIKey(profile config.AgentProfile) (string, string) {
+	envKey := getEnvKeyForProvider(profile.Provider)
+	if apiKey := os.Getenv(envKey); apiKey != "" {
+		return apiKey, "env"
 	}
 
-	if key, err := f.secretsManager.Retrieve(profile.KeyringKey); err == nil && key != "" {
-		return key, "keyring"
+	if apiKey, err := f.secretsManager.RetrieveAgentKey(profile.Name); err == nil {
+		return apiKey, "keyring"
 	}
 
-	if key := getEnvKeyForProvider(profile.Provider); key != "" {
-		return key, "environment"
-	}
-
-	if auth, err := secrets.LoadOpenCodeAuth(); err == nil && auth != nil {
-		providerName := string(profile.Provider)
-		if key, ok := auth.GetAPIKey(providerName); ok {
-			return key, "opencode"
-		}
+	if apiKey, err := f.secretsManager.RetrieveAgentKey(string(profile.Provider)); err == nil {
+		return apiKey, "keyring"
 	}
 
 	return "", ""
 }
 
-func (f *Factory) CreateClientWithKey(profile config.AgentProfile, apiKey string) (Client, error) {
-	switch profile.Provider {
-	case config.ProviderOpenAI, config.ProviderGroq, config.ProviderOpenRouter, config.ProviderOllama, config.ProviderOpenCode:
-		return NewOpenAIClient(profile, apiKey)
+func getEnvKeyForProvider(provider config.AgentProvider) string {
+	switch provider {
+	case config.ProviderOpenAI:
+		return "OPENAI_API_KEY"
+	case config.ProviderGroq:
+		return "GROQ_API_KEY"
 	case config.ProviderClaude:
-		return NewAnthropicClient(profile, apiKey)
+		return "ANTHROPIC_API_KEY"
+	case config.ProviderGemini:
+		return "GEMINI_API_KEY"
+	case config.ProviderOpenRouter:
+		return "OPENROUTER_API_KEY"
+	case config.ProviderOpenCode:
+		return "OPENCODE_API_KEY"
+	case config.ProviderHackClub:
+		return "HACKCLUB_API_KEY"
 	default:
-		return nil, fmt.Errorf("unsupported provider: %s", profile.Provider)
+		return strings.ToUpper(string(provider)) + "_API_KEY"
 	}
 }

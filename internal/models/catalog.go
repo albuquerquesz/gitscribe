@@ -12,7 +12,6 @@ type ModelInfo struct {
 	Description string
 	MaxTokens   int
 	Group       string
-	Tags        []string
 }
 
 type ProviderInfo struct {
@@ -66,6 +65,20 @@ var Providers = map[string]ProviderInfo{
 		SupportsOAuth2: false,
 		Description:    "Multi-provider access",
 	},
+	"hackclub": {
+		Name:           "hackclub",
+		DisplayName:    "Hack Club",
+		Icon:           "🚩",
+		SupportsOAuth2: false,
+		Description:    "Hack Club AI proxy",
+	},
+	"opencode": {
+		Name:           "opencode",
+		DisplayName:    "OpenCode",
+		Icon:           "💻",
+		SupportsOAuth2: false,
+		Description:    "OpenCode AI API",
+	},
 }
 
 var ModelCatalog = map[string][]ModelInfo{
@@ -77,7 +90,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Best balance of intelligence and speed",
 			MaxTokens:   200000,
 			Group:       "Claude 3.5",
-			Tags:        []string{"fast", "smart"},
 		},
 		{
 			ID:          "claude-3-opus-20240229",
@@ -86,7 +98,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Most powerful model for complex tasks",
 			MaxTokens:   200000,
 			Group:       "Claude 3",
-			Tags:        []string{"powerful", "slow"},
 		},
 		{
 			ID:          "claude-3-sonnet-20240229",
@@ -95,7 +106,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Balanced performance and cost",
 			MaxTokens:   200000,
 			Group:       "Claude 3",
-			Tags:        []string{"balanced"},
 		},
 		{
 			ID:          "claude-3-haiku-20240307",
@@ -104,7 +114,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Fastest, most cost-effective",
 			MaxTokens:   200000,
 			Group:       "Claude 3",
-			Tags:        []string{"fast", "cheap"},
 		},
 	},
 	"openai": {
@@ -115,7 +124,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Most capable multimodal model",
 			MaxTokens:   128000,
 			Group:       "GPT-4",
-			Tags:        []string{"smart", "multimodal"},
 		},
 		{
 			ID:          "gpt-4o-mini",
@@ -124,7 +132,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Fast, affordable for most tasks",
 			MaxTokens:   128000,
 			Group:       "GPT-4",
-			Tags:        []string{"fast", "cheap"},
 		},
 		{
 			ID:          "gpt-4-turbo",
@@ -133,7 +140,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Legacy high quality model",
 			MaxTokens:   128000,
 			Group:       "GPT-4",
-			Tags:        []string{"legacy"},
 		},
 		{
 			ID:          "o1",
@@ -142,7 +148,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Advanced reasoning model",
 			MaxTokens:   200000,
 			Group:       "o1 Series",
-			Tags:        []string{"reasoning", "slow"},
 		},
 		{
 			ID:          "o1-mini",
@@ -151,7 +156,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Fast reasoning model",
 			MaxTokens:   128000,
 			Group:       "o1 Series",
-			Tags:        []string{"reasoning", "fast"},
 		},
 	},
 	"groq": {
@@ -162,7 +166,14 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Ultra-fast inference with Llama",
 			MaxTokens:   32768,
 			Group:       "Llama 3",
-			Tags:        []string{"fast", "local"},
+		},
+		{
+			ID:          "openai/gpt-oss-120b",
+			Name:        "OpenAI GPT OSS 120b",
+			Provider:    "groq",
+			Description: "Ultra-fast inference with Llama",
+			MaxTokens:   32768,
+			Group:       "Llama 3",
 		},
 		{
 			ID:          "mixtral-8x7b-32768",
@@ -171,7 +182,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Efficient MoE architecture",
 			MaxTokens:   32768,
 			Group:       "Mixtral",
-			Tags:        []string{"efficient"},
 		},
 		{
 			ID:          "gemma-2-9b-it",
@@ -180,27 +190,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Lightweight Google model",
 			MaxTokens:   8192,
 			Group:       "Gemma",
-			Tags:        []string{"lightweight"},
-		},
-	},
-	"gemini": {
-		{
-			ID:          "gemini-1.5-pro",
-			Name:        "Gemini 1.5 Pro",
-			Provider:    "gemini",
-			Description: "Google's most capable model",
-			MaxTokens:   2000000,
-			Group:       "Gemini 1.5",
-			Tags:        []string{"smart", "long-context"},
-		},
-		{
-			ID:          "gemini-1.5-flash",
-			Name:        "Gemini 1.5 Flash",
-			Provider:    "gemini",
-			Description: "Fast and versatile",
-			MaxTokens:   1000000,
-			Group:       "Gemini 1.5",
-			Tags:        []string{"fast"},
 		},
 	},
 	"ollama": {
@@ -211,7 +200,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Meta's latest local model",
 			MaxTokens:   128000,
 			Group:       "Llama",
-			Tags:        []string{"local", "free"},
 		},
 		{
 			ID:          "codellama",
@@ -220,7 +208,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Specialized for coding tasks",
 			MaxTokens:   100000,
 			Group:       "Code",
-			Tags:        []string{"local", "code"},
 		},
 		{
 			ID:          "mistral",
@@ -229,7 +216,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Efficient open model",
 			MaxTokens:   32768,
 			Group:       "Mistral",
-			Tags:        []string{"local", "efficient"},
 		},
 	},
 	"openrouter": {
@@ -240,7 +226,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Via OpenRouter",
 			MaxTokens:   200000,
 			Group:       "Anthropic",
-			Tags:        []string{"smart"},
 		},
 		{
 			ID:          "openai/gpt-4o",
@@ -249,7 +234,6 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Via OpenRouter",
 			MaxTokens:   128000,
 			Group:       "OpenAI",
-			Tags:        []string{"smart"},
 		},
 		{
 			ID:          "meta-llama/llama-3.3-70b-instruct",
@@ -258,7 +242,32 @@ var ModelCatalog = map[string][]ModelInfo{
 			Description: "Via OpenRouter",
 			MaxTokens:   131072,
 			Group:       "Meta",
-			Tags:        []string{"fast"},
+		},
+	},
+	"hackclub": {
+		{
+			ID:          "moonshotai/kimi-k2.5",
+			Name:        "Kimi K2.5",
+			Provider:    "hackclub",
+			Description: "Via hackclub",
+			Group:       "hackclub",
+		},
+		{
+			ID:          "qwen/qwen-2.5-72b-instruct",
+			Name:        "Qwen 2.5 72B",
+			Provider:    "hackclub",
+			Description: "Via hackclub",
+			Group:       "hackclub",
+		},
+	},
+	"opencode": {
+		{
+			ID:          "opencode-default",
+			Name:        "OpenCode Default",
+			Provider:    "opencode",
+			Description: "Default OpenCode model",
+			MaxTokens:   4096,
+			Group:       "OpenCode",
 		},
 	},
 }
@@ -304,7 +313,6 @@ func SupportsOAuth2(provider string) bool {
 }
 
 func GenerateProfileName(provider, modelID string) string {
-
 	cleanModel := strings.ReplaceAll(modelID, "-", "_")
 	cleanModel = strings.ReplaceAll(cleanModel, ".", "_")
 	cleanModel = strings.ReplaceAll(cleanModel, "/", "_")
