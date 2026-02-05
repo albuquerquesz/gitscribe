@@ -54,7 +54,6 @@ func realizePR() error {
 		return err
 	}
 
-	// Check for uncommitted changes
 	diffCmd := exec.Command("git", "diff", "--quiet")
 	if err := diffCmd.Run(); err != nil {
 		style.Info("Commite primeiro")

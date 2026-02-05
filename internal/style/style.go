@@ -41,7 +41,6 @@ var (
 func GetTheme() *huh.Theme {
 	t := huh.ThemeCharm()
 
-	// Focused states (active/selected)
 	t.Focused.Base = t.Focused.Base.Foreground(White)
 	t.Focused.Title = t.Focused.Title.Foreground(White)
 	t.Focused.Description = t.Focused.Description.Foreground(Grey)
@@ -55,14 +54,12 @@ func GetTheme() *huh.Theme {
 	t.Focused.FocusedButton = t.Focused.FocusedButton.Foreground(White).Background(DarkGrey)
 	t.Focused.BlurredButton = t.Focused.BlurredButton.Foreground(Grey).Background(DarkGrey)
 
-	// Blurred states (inactive)
 	t.Blurred.Base = t.Blurred.Base.Foreground(Grey)
 	t.Blurred.Title = t.Blurred.Title.Foreground(Grey)
 	t.Blurred.Option = t.Blurred.Option.Foreground(DarkGrey)
 	t.Blurred.FocusedButton = t.Blurred.FocusedButton.Foreground(Grey).Background(DarkGrey)
 	t.Blurred.BlurredButton = t.Blurred.BlurredButton.Foreground(DarkGrey).Background(DarkGrey)
 
-	// Help styles
 	t.Help.Ellipsis = t.Help.Ellipsis.Foreground(Grey)
 	t.Help.ShortKey = t.Help.ShortKey.Foreground(Grey)
 	t.Help.ShortDesc = t.Help.ShortDesc.Foreground(LightGrey)

@@ -22,27 +22,44 @@ var StaticModels = []Model{
 		Name:     "GPT-4o Mini",
 	},
 	{
-		ID:          "kimi-2.5",
+		ID:          "kimi-k2.5-free",
 		Provider:    "opencode",
-		Name:        "Kimi 2.5",
+		Name:        "Kimi 2.5 Free",
 		Description: "Long context specialist from OpenCode Zen",
 	},
 	{
-		ID:          "mini-pickle",
+		ID:          "minimax-m2.1-free",
 		Provider:    "opencode",
-		Name:        "Mini Pickle",
+		Name:        "MiniMax M2.1 Free",
 		Description: "Fast and lightweight coding assistant",
 	},
 	{
-		ID:          "glm",
+		ID:          "glm-4.7-free",
 		Provider:    "opencode",
-		Name:        "GLM",
+		Name:        "GLM 4.7 Free",
 		Description: "Powerful General Language Model",
 	},
 	{
 		ID:       "llama-3.3-70b-versatile",
 		Provider: "groq",
 		Name:     "Llama 3.3 70B Versatile",
+	},
+	{
+		ID:       "openai/gpt-oss-120b",
+		Provider: "groq",
+		Name:     "OpenAI GPT OSS 120b",
+	},
+	{
+		ID:          "moonshotai/kimi-k2.5",
+		Provider:    "hackclub",
+		Name:        "Kimi K2.5",
+		Description: "Reasoning model via Hack Club",
+	},
+	{
+		ID:          "qwen/qwen-2.5-72b-instruct",
+		Provider:    "hackclub",
+		Name:        "Qwen 2.5 72B",
+		Description: "Powerful open model via Hack Club",
 	},
 }
 
@@ -68,8 +85,13 @@ var ProviderConfigs = map[string]ProviderConfig{
 	},
 	"opencode": {
 		Name:       "opencode",
-		BaseURL:    "https://api.opencode.com/v1",
+		BaseURL:    "https://opencode.ai/zen/v1",
 		AuthMethod: AuthMethodAPIKey,
+	},
+	"hackclub": {
+		Name:       "hackclub",
+		BaseURL:    "https://ai.hackclub.com/proxy/v1",
+		AuthMethod: AuthMethodBearer,
 	},
 }
 

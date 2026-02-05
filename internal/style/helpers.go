@@ -21,6 +21,9 @@ func formatProviderName(p string) string {
 	if pLower == "opencode" {
 		return "OpenCode"
 	}
+	if pLower == "hackclub" {
+		return "Hack Club"
+	}
 	if len(p) > 0 {
 		return strings.ToUpper(p[:1]) + strings.ToLower(p[1:])
 	}

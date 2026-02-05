@@ -37,31 +37,7 @@ func runModelsInteractive() error {
 }
 
 func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) error {
-	apiKey, err := auth.LoadAPIKey(m.Provider)
-	isAuthenticated := err == nil && apiKey != ""
-
-	if !isAuthenticated {
-		style.Info(fmt.Sprintf("Model %s from %s requires an API key.", m.Name, m.Provider))
-
-		// Prompt for API key directly
-		apiKeyInput, err := style.Prompt(fmt.Sprintf("Enter API key for %s", m.Provider))
-		if err != nil {
-			return fmt.Errorf("failed to get API key: %w", err)
-		}
-
-		// Store the API key
-		if err := auth.StoreAPIKey(m.Provider, apiKeyInput); err != nil {
-			return fmt.Errorf("failed to store API key: %w", err)
-		}
-
-		// Verify it was stored
-		apiKey, err = auth.LoadAPIKey(m.Provider)
-		if err != nil || apiKey == "" {
-			return fmt.Errorf("API key was not stored correctly")
-		}
-	} else {
-		style.Success(fmt.Sprintf("API key already configured for %s.", m.Provider))
-	}
+	apiKey, err := validateAuth(m)
 
 	cfg, err := appconfig.Load()
 	if err != nil {
@@ -116,6 +92,33 @@ func handleModelSelection(m catalog.Model, manager *catalog.CatalogManager) erro
 
 	style.Success(fmt.Sprintf("Agent %s is now active and set as default!", profileName))
 	return nil
+}
+
+func validateAuth(m catalog.Model) (string, error) {
+	apiKey, err := auth.LoadAPIKey(m.Provider)
+	isAuthenticated := err == nil && apiKey != ""
+
+	if isAuthenticated {
+		style.Success(fmt.Sprintf("API key already configured for %s.", m.Provider))
+		return "", nil
+	}
+	style.Info(fmt.Sprintf("Model %s from %s requires an API key.", m.Name, m.Provider))
+
+	apiKeyInput, err := style.Prompt(fmt.Sprintf("Enter API key for %s", m.Provider))
+	if err != nil {
+		return "", fmt.Errorf("failed to get API key: %w", err)
+	}
+
+	if err := auth.StoreAPIKey(m.Provider, apiKeyInput); err != nil {
+		return "", fmt.Errorf("failed to store API key: %w", err)
+	}
+
+	apiKey, err = auth.LoadAPIKey(m.Provider)
+	if err != nil || apiKey == "" {
+		return "", fmt.Errorf("API key was not stored correctly")
+	}
+
+	return apiKey, nil
 }
 
 func getCatalogManager() (*catalog.CatalogManager, error) {

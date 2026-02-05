@@ -23,6 +23,7 @@ const (
 	ProviderOllama     AgentProvider = "ollama"
 	ProviderOpenRouter AgentProvider = "openrouter"
 	ProviderOpenCode   AgentProvider = "opencode"
+	ProviderHackClub   AgentProvider = "hackclub"
 )
 
 type AgentProfile struct {

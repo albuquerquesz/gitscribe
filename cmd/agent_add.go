@@ -56,6 +56,7 @@ func addAgent() error {
 		config.ProviderOllama,
 		config.ProviderOpenRouter,
 		config.ProviderOpenCode,
+		config.ProviderHackClub,
 	}
 
 	valid := false

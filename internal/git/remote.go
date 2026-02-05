@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-// GetRemoteURL returns the URL of the origin remote
 func GetRemoteURL() (string, error) {
 	cmd := exec.Command("git", "remote", "get-url", "origin")
 	output, err := cmd.Output()
@@ -15,7 +14,6 @@ func GetRemoteURL() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-// DetectProvider detects the git provider (github, gitlab) from remote URL
 func DetectProvider(remoteURL string) string {
 	lower := strings.ToLower(remoteURL)
 	if strings.Contains(lower, "github.com") {
@@ -27,7 +25,6 @@ func DetectProvider(remoteURL string) string {
 	return ""
 }
 
-// IsCLIInstalled checks if a CLI tool is installed
 func IsCLIInstalled(cli string) bool {
 	cmd := exec.Command("which", cli)
 	err := cmd.Run()
